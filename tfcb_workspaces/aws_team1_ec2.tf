@@ -12,7 +12,8 @@ module "aws-ec2" {
   repo_branch         = "main"
   global_remote_state = false
   tag_names           = ["team1", "ec2", "${var.aws_default_region}", "${var.env}"]
-  variable_set        = tfe_variable_set.cloud_creds.id
+  # variable_set_enabled = true
+  # variable_set        = tfe_variable_set.cloud_creds.id
 
   env_variables = {
     "CONFIRM_DESTROY" : 1
