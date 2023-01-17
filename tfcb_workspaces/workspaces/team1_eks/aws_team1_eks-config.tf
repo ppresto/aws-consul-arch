@@ -7,7 +7,7 @@ module "aws_team1_eks-config" {
   tfversion           = "1.1.4"
   queue_all_runs      = false
   auto_apply          = true
-  identifier          = "${var.repo_org}/tfc-hcpc-pipelines"
+  identifier          = "${var.repo_org}/hcp-consul"
   oauth_token_id      = var.oauth_token_id
   repo_branch         = "main"
   global_remote_state = false

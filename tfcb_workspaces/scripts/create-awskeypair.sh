@@ -21,10 +21,10 @@
 # source ./push-local-sshkeypair-to-aws.sh <my-keypair-name> <aws-region>
 
 # Create SSH key
-ssh-keygen -t rsa -b 4096 -f $HOME/.ssh/tfc-hcpc-pipelines -N ''
+ssh-keygen -t rsa -b 4096 -f $HOME/.ssh/hcp-consul -N ''
 
 # Path to PUBLIC ssh key that you want pushed to AWS
-publickeyfile="$HOME/.ssh/tfc-hcpc-pipelines.pub"
+publickeyfile="$HOME/.ssh/hcp-consul.pub"
 
 # use supplied keypair name or by default create unique keypair name
 if [[ -z "${1}" ]]; then
