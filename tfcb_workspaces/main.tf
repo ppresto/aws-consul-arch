@@ -3,7 +3,7 @@
 #
 resource "tfe_project" "twilio" {
   organization = var.organization
-  name = "Twilio"
+  name         = "Twilio"
 }
 
 #

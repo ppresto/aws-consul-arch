@@ -2,36 +2,42 @@
 global:
   name: ${NAME_PREFIX}
   enabled: false
-  datacenter: ${DATACENTER}
-  image: "hashicorp/consul-enterprise:1.14.3"
-  imageK8S: docker.mirror.hashicorp.services/hashicorp/consul-k8s-control-plane:1.0.2
-  imageConsulDataplane: "hashicorp/consul-dataplane:1.0.0"
   enableConsulNamespaces: true
+  datacenter: ${DATACENTER}
   adminPartitions:
     enabled: true
-    name: "otk"
-  peering:
-    enabled: true
+    name: "pci"
+    #service:
+    #  type: LoadBalancer
+    # service:
+    #   type: NodePort
+    #   nodePort:
+    #     https: 30001
+    #     rpc: 31002
+    #     serf: 31003
   acls:
     manageSystemACLs: true
     bootstrapToken:
       secretName: consul-bootstrap-token
       secretKey: token
+  gossipEncryption:
+    secretName: consul-gossip-key
+    secretKey: key
   tls:
     enabled: true
+    enableAutoEncrypt: true
     caCert:
       secretName: consul-ca-cert
       secretKey: tls.crt
-server:
-  enabled: false
-
 externalServers:
   enabled: true
   hosts: ${RETRY_JOIN}
   httpsPort: 443
-  grpcPort: 8502
-  useSystemRoots: false
+  useSystemRoots: true
   k8sAuthMethodHost: ${KUBE_API_URL}
+client:
+  enabled: true
+  join: ${RETRY_JOIN}
 dns:
   enabled: true
   enableRedirection: true
@@ -45,21 +51,12 @@ connectInject:
     defaultEnableMerging: true
   consulNamespaces:
     mirroringK8S: true
-  consulNode:
-    meta: 
-      node: "${NAME_PREFIX}-agentless-node"
 syncCatalog:
   enabled: true
   toConsul: false
   toK8S: true
+controller:
+  enabled: true
 meshGateway:
   enabled: true
   replicas: 1
-ingressGateways:
-  enabled: true
-  defaults:
-    replicas: 1
-  gateways:
-    - name: ingress-gateway
-      service:
-        type: LoadBalancer

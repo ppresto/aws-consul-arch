@@ -1,20 +1,20 @@
 module "aws_team1_eks-config" {
-  source              = "../modules/workspace-mgr"
-  agent_pool_id       = ""
-  organization        = var.organization
-  workspacename       = "aws_${local.region_shortname}_${var.env}_team1-eks-config"
-  workingdir          = "aws_team1_eks-config"
-  tfversion           = "1.1.4"
-  queue_all_runs      = false
-  auto_apply          = true
-  identifier          = "${var.repo_org}/hcp-consul"
-  oauth_token_id      = var.oauth_token_id
-  repo_branch         = "main"
-  global_remote_state = false
-  tag_names           = ["team1", "consul-agent", "${var.aws_default_region}", "${var.env}"]
-  project_id          = tfe_project.twilio.id
+  source               = "../modules/workspace-mgr"
+  agent_pool_id        = ""
+  organization         = var.organization
+  workspacename        = "aws_${local.region_shortname}_${var.env}_team1-eks-config"
+  workingdir           = "aws_team1_eks-config"
+  tfversion            = "1.1.4"
+  queue_all_runs       = false
+  auto_apply           = true
+  identifier           = "${var.repo_org}/hcp-consul"
+  oauth_token_id       = var.oauth_token_id
+  repo_branch          = "main"
+  global_remote_state  = false
+  tag_names            = ["team1", "consul-agent", "${var.aws_default_region}", "${var.env}"]
+  project_id           = tfe_project.twilio.id
   variable_set_enabled = true
-  variable_set        = tfe_variable_set.cloud_creds.id
+  variable_set         = tfe_variable_set.cloud_creds.id
 
   env_variables = {
     "CONFIRM_DESTROY" : 1

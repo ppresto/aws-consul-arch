@@ -1,20 +1,20 @@
 module "ws_hcp_consul" {
-  source              = "../modules/workspace-mgr"
-  agent_pool_id       = ""
-  organization        = var.organization
-  workspacename       = "aws_${local.region_shortname}_shared_hcp-consul"
-  workingdir          = "hcp_consul_service"
-  tfversion           = "1.1.4"
-  queue_all_runs      = false
-  auto_apply          = true
-  identifier          = "${var.repo_org}/hcp-consul"
-  oauth_token_id      = var.oauth_token_id
-  repo_branch         = "main"
-  global_remote_state = false
-  tag_names           = ["team-ss", "hcp", "shared-vpc", "consul", "${var.aws_default_region}"]
-  project_id          = tfe_project.twilio.id
+  source               = "../modules/workspace-mgr"
+  agent_pool_id        = ""
+  organization         = var.organization
+  workspacename        = "aws_${local.region_shortname}_shared_hcp-consul"
+  workingdir           = "hcp_consul_service"
+  tfversion            = "1.1.4"
+  queue_all_runs       = false
+  auto_apply           = true
+  identifier           = "${var.repo_org}/hcp-consul"
+  oauth_token_id       = var.oauth_token_id
+  repo_branch          = "main"
+  global_remote_state  = false
+  tag_names            = ["team-ss", "hcp", "shared-vpc", "consul", "${var.aws_default_region}"]
+  project_id           = tfe_project.twilio.id
   variable_set_enabled = true
-  variable_set        = tfe_variable_set.cloud_creds.id
+  variable_set         = tfe_variable_set.cloud_creds.id
 
   env_variables = {
     "CONFIRM_DESTROY" : 1
@@ -23,13 +23,13 @@ module "ws_hcp_consul" {
   }
   # local.region_shortname ex: "usw2"
   tf_variables = {
-    "hvn_id"            = "${local.region_shortname}-hvn-id"
-    "cluster_id"        = local.region_shortname
-    "region"            = var.aws_default_region
-    "cloud_provider"    = "aws"
-    "vpc_id"            = null
-    "env"               = "shared"
-    "ec2_key_pair_name" = var.ssh_key_name
+    "hvn_id"             = "${local.region_shortname}-hvn-id"
+    "cluster_id"         = local.region_shortname
+    "region"             = var.aws_default_region
+    "cloud_provider"     = "aws"
+    "vpc_id"             = null
+    "env"                = "shared"
+    "ec2_key_pair_name"  = var.ssh_key_name
     "min_consul_version" = "1.12.5"
   }
   env_variables_sec = {
