@@ -43,7 +43,7 @@ https://learn.hashicorp.com/tutorials/cloud/amazon-transit-gateway?in=consul/)
 SSH to bastion host for access to internal networks.  The TF is leveraging your AWS Key Pair for the Bastion/EC2 and EKS nodes.  Use `Agent Forwarding` to ssh to your nodes.  Locally in your terminal find your key and setup ssh.
 ```
 ssh-add -L  # Find SSH Keys added
-ssh-add ${HOME}/.ssh/my-dev-key.pem  # If you dont have any keys then add your key being used in TF.
+ssh-add ${HOME}/.ssh/hcp-consul  # If you dont have any keys then add your key being used in TF.
 ssh -A ubuntu@<BASTION_IP>>  # pass your key in memory to the ubuntu Bastion Host you ssh to.
 ssh -A ec2_user@<K8S_NODE_IP> # From bastion use your key to access a node in the private network.
 ```
