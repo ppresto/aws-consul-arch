@@ -31,7 +31,7 @@ resource "tfe_variable" "aws_secret_access_key" {
 }
 resource "tfe_variable" "aws_session_token" {
   key             = "AWS_SESSION_TOKEN"
-  value           = var.aws_session_token
+  value           = "var.aws_session_token"
   category        = "env"
   sensitive       = false
   description     = "AWS Session Token"

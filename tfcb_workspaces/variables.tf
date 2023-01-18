@@ -23,6 +23,7 @@ variable "env" { default = "dev" }
 variable "aws_default_region" { default = "us-west-2" }
 variable "aws_secret_access_key" { default = "" }
 variable "aws_access_key_id" { default = "" }
+variable "aws_session_token" { default = "" }
 variable "gcp_region" { default = "" }
 variable "gcp_zone" { default = "" }
 variable "gcp_project" { default = "" }
