@@ -9,7 +9,7 @@ resource "tfe_workspace" "ws-vcs" {
   agent_pool_id       = var.agent_pool_id != "" ? var.agent_pool_id : ""
   execution_mode      = var.agent_pool_id != "" ? "agent" : "remote"
   tag_names           = var.tag_names
-  project_id          = null
+  project_id          = var.project_id
   vcs_repo {
     identifier     = var.identifier
     oauth_token_id = var.oauth_token_id

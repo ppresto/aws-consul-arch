@@ -1,3 +1,15 @@
+#
+### Project (Beta)
+#
+resource "tfe_project" "twilio" {
+  organization = var.organization
+  name = "Twilio"
+}
+
+#
+### Variable Set
+#
+
 #Pull workspaces by tags and apply variable sets to targeted groups of workspaces.
 #data "tfe_workspace_ids" "uswest2" {
 #  tag_names    = ["aws", var.aws_default_region]

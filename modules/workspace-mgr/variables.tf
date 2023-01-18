@@ -11,6 +11,7 @@ variable "oauth_token_id" {}
 variable "repo_branch" { default = "main" }
 variable "identifier" {}
 variable "agent_pool_id" { default = "" }
+variable "project_id" { default = null }
 variable "variable_set" { default = null }
 variable "variable_set_enabled" { default = false }
 

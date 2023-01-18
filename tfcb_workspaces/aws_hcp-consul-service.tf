@@ -12,6 +12,7 @@ module "ws_hcp_consul" {
   repo_branch         = "main"
   global_remote_state = false
   tag_names           = ["team-ss", "hcp", "shared-vpc", "consul", "${var.aws_default_region}"]
+  project_id          = tfe_project.twilio.id
   variable_set_enabled = true
   variable_set        = tfe_variable_set.cloud_creds.id
 
