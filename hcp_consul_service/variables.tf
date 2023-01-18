@@ -49,7 +49,7 @@ variable "cluster_id" {
 variable "min_consul_version" {
   description = "Minimum version of HCP Consul"
   type        = string
-  default     = "1.12.4"
+  default     = "1.14.3"
 }
 variable "region" {
   description = "The region of the HCP HVN and Consul cluster."
