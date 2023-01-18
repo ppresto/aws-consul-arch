@@ -8,6 +8,7 @@ variable "tag_names" {
   type    = list(any)
   default = ["auto"]
 }
+variable "variable_set_enabled" { default = false }
 variable "variable_set" { default = null }
 
 # HCP variables

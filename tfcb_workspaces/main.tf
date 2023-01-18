@@ -29,3 +29,11 @@ resource "tfe_variable" "aws_secret_access_key" {
   description     = "uswest2 AWS secret access key"
   variable_set_id = tfe_variable_set.cloud_creds.id
 }
+resource "tfe_variable" "aws_session_token" {
+  key             = "AWS_SESSION_TOKEN"
+  value           = var.aws_session_token
+  category        = "env"
+  sensitive       = false
+  description     = "AWS Session Token"
+  variable_set_id = tfe_variable_set.cloud_creds.id
+}
