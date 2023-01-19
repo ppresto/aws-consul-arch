@@ -3,7 +3,8 @@ variable "name" {
   type        = string
   default     = "presto"
 }
-variable "consul_template" { default = "fake-service" }
+variable "service_template" { default = "fake-service" }
+variable "helm_template" { default = "helm-config-agent.yaml" }
 variable "env" { default = "dev" }
 variable "region" {
   description = "AWS region."

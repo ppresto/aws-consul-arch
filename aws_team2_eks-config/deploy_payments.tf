@@ -1,8 +1,8 @@
 data "kubectl_path_documents" "fake-service" {
-  pattern = "${path.module}/templates/${var.consul_template}/release-payments/*.yaml"
+  pattern = "${path.module}/templates/${var.service_template}/release-payments/*.yaml"
 }
 data "kubectl_path_documents" "consul-init" {
-  pattern = "${path.module}/templates/${var.consul_template}/init-consul-config/*.yaml"
+  pattern = "${path.module}/templates/${var.service_template}/init-consul-config/*.yaml"
 }
 
 resource "kubectl_manifest" "consul-init" {
