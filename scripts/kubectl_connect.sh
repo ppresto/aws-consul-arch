@@ -23,6 +23,6 @@ alias 'team1=kubectl config use-context $team1_context'
 
 aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name presto-aws-team2-eks
 export team2_context=$(kubectl config current-context)
-alias 'team2=kubectl config use-context $team1_context'
+alias 'team2=kubectl config use-context $team2_context'
 
 alias 'kc=kubectl -n consul'

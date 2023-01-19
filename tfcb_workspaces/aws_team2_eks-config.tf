@@ -28,6 +28,7 @@ module "aws_team2_eks-config" {
     "namespace"         = "consul"
     "env"               = var.env
     "helm_release_name" = "team2"
+    "helm_template"     = "helm-config-dataplane.yaml"
   }
   env_variables_sec = {
     "HCP_CLIENT_SECRET" = var.HCP_CLIENT_SECRET

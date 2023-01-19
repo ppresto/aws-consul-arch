@@ -28,6 +28,7 @@ module "aws_team1_eks-config" {
     "namespace"         = "consul"
     "env"               = var.env
     "helm_release_name" = "team1"
+    "helm_template"     = "helm-config-agent.yaml"
   }
   env_variables_sec = {
     "HCP_CLIENT_SECRET" = var.HCP_CLIENT_SECRET
