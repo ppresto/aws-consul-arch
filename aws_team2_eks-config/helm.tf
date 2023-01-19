@@ -27,16 +27,12 @@ resource "helm_release" "consul" {
   create_namespace = false
   repository       = "https://helm.releases.hashicorp.com"
   chart            = "consul"
-  version          = "0.45.0" #https://www.consul.io/docs/k8s/compatibility
+  version          = "1.0.2" #https://www.consul.io/docs/k8s/compatibility
 
   values = [data.template_file.agent_config.rendered]
   set {
     name  = "global.image"
-    value = "hashicorp/consul-enterprise:1.12.4-ent"
-  }
-  set {
-    name  = "global.imageEnvoy"
-    value = "envoyproxy/envoy-alpine:v1.21.3"
+    value = "hashicorp/consul-enterprise:1.14.3-ent"
   }
   depends_on = [kubernetes_namespace.create]
 }
