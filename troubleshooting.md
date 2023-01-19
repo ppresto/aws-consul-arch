@@ -20,6 +20,7 @@
   - [EKS / Kubernetes](#eks--kubernetes)
     - [EKS - Login / Set Context](#eks---login--set-context)
     - [EKS - Helm Install manually to debug](#eks---helm-install-manually-to-debug)
+    - [EKS - Test pod connectivity to Consul](#eks---test-pod-connectivity-to-consul)
     - [EKS - DNS Troubleshooting](#eks---dns-troubleshooting)
     - [EKS - Change proxy global defaults](#eks---change-proxy-global-defaults)
     - [EKS - Terminate stuck namespace](#eks---terminate-stuck-namespace)
@@ -234,11 +235,28 @@ helm install team2 hashicorp/consul --namespace consul --version 0.41.1 --set gl
 
 # 0.43.0 , consul 1.12.4-ent
 helm install team2 hashicorp/consul --namespace consul --version 0.45.0 --set global.image="hashicorp/consul-enterprise:1.12.4-ent" --values ./helm/test.yaml
+
+# 1.0.2 , consul 1.14.3-ent
+helm install team2 hashicorp/consul --namespace consul --version 1.0.2 --set global.image="hashicorp/consul-enterprise:1.14.3-ent" --values ./helm/mytest.yaml
+
 ```
 
 The Helm release name must be unique for each Kubernetes cluster. The Helm chart uses the Helm release name as a prefix for the ACL resources that it creates so duplicate names will overwrite ACL's.
 
 [Uninstall Consul / Helm](https://www.consul.io/docs/k8s/operations/uninstall)
+
+### EKS - Test pod connectivity to Consul
+
+Run multitool and exec into it
+```
+kubectl run multitool --image=praqma/network-multitool
+kubectl exec -it multitool -- bash
+```
+
+Get the IP Address of the Consul Server.  Use netcat to verify if the TCP port is open from EKS.
+```
+nc -v 172.25.21.116 8502
+```
 
 ### EKS - DNS Troubleshooting
 Get DNS services (consul and coredns), start busybox, and use nslookup

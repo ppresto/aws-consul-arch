@@ -9,7 +9,7 @@ global:
   enableConsulNamespaces: true
   adminPartitions:
     enabled: true
-    name: "otk"
+    name: "pci"
   peering:
     enabled: true
   acls:

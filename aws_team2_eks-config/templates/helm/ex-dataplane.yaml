@@ -1,8 +1,8 @@
 # https://github.com/hashicorp/consul-k8s/blob/main/charts/consul/values.yaml
 global:
-  name: ${NAME_PREFIX}
+  name: team2
   enabled: false
-  datacenter: ${DATACENTER}
+  datacenter: usw2
   image: "hashicorp/consul-enterprise:1.14.3"
   imageK8S: docker.mirror.hashicorp.services/hashicorp/consul-k8s-control-plane:1.0.2
   imageConsulDataplane: "hashicorp/consul-dataplane:1.0.0"
@@ -25,15 +25,15 @@ server:
 
 externalServers:
   enabled: true
-  hosts: ${RETRY_JOIN}
+  hosts: ["usw2.private.consul.328306de-41b8-43a7-9c38-ca8d89d06b07.aws.hashicorp.cloud"]
   httpsPort: 443
   grpcPort: 8502
   useSystemRoots: true
-  k8sAuthMethodHost: ${KUBE_API_URL}
+  k8sAuthMethodHost: https://4966F02AFD05DE4C182A3C104EEE98D6.gr7.us-west-2.eks.amazonaws.com
 dns:
   enabled: true
   enableRedirection: true
-  clusterIP: ${CONSUL_DNS_CLUSTER_IP} # Needed to configure kube-dns forwarding
+  clusterIP: 172.21.128.87 # Needed to configure kube-dns forwarding
 connectInject:
   enabled: true
   transparentProxy:
@@ -45,7 +45,7 @@ connectInject:
     mirroringK8S: true
   consulNode:
     meta: 
-      node: "${NAME_PREFIX}-agentless-node"
+      node: "team2-agentless-node"
 syncCatalog:
   enabled: true
   toConsul: false
@@ -61,3 +61,4 @@ ingressGateways:
     - name: ingress-gateway
       service:
         type: LoadBalancer
+
