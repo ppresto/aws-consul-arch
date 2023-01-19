@@ -4,7 +4,7 @@ variable "name" {
   default     = "presto"
 }
 variable "env" { default = "dev" }
-variable "consul_template" { default = "fake-service" }
+variable "service_template" { default = "fake-service" }
 variable "region" {
   description = "AWS region."
   type        = string

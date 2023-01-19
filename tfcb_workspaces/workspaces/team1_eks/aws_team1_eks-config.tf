@@ -22,7 +22,7 @@ module "aws_team1_eks-config" {
   tf_variables = {
     "region"            = var.aws_default_region
     "organization"      = var.organization
-    "consul_template"   = "fake-service"
+    "service_template"   = "fake-service"
     "namespace"         = "consul"
     "env"               = var.env
     "helm_release_name" = "team1"

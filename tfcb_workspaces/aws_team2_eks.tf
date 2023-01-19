@@ -26,7 +26,7 @@ module "aws-eks-2" {
     "region"            = var.aws_default_region
     "organization"      = var.organization
     "env"               = var.env
-    "consul_template"   = "fake-service"
+    "service_template"   = "fake-service"
     "namespace"         = "consul"
   }
   env_variables_sec = {
