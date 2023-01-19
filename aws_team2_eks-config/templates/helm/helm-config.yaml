@@ -19,9 +19,7 @@ global:
       secretKey: token
   tls:
     enabled: true
-    caCert:
-      secretName: consul-ca-cert
-      secretKey: tls.crt
+
 server:
   enabled: false
 
@@ -30,7 +28,7 @@ externalServers:
   hosts: ${RETRY_JOIN}
   httpsPort: 443
   grpcPort: 8502
-  useSystemRoots: false
+  useSystemRoots: true
   k8sAuthMethodHost: ${KUBE_API_URL}
 dns:
   enabled: true
