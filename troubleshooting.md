@@ -402,13 +402,13 @@ kubectl -n web exec deploy/web -c web -- wget -qO- http://api.virtual.api.ns.def
 
 ### Consul - Ingress GW
 ```
-kubectl -n consul exec deploy/consul-ingress-gateway -c ingress-gateway -- wget -qO- 127.0.0.1:19000/clusters
+kubectl -n consul exec deploy/team1-ingress-gateway -c ingress-gateway -- wget -qO- 127.0.0.1:19000/clusters
 
-kubectl -n consul exec deploy/consul-ingress-gateway -c ingress-gateway -- wget -qO- http://localhost:19000/config_dump
+kubectl -n consul exec deploy/team1-ingress-gateway -c ingress-gateway -- wget -qO- http://localhost:19000/config_dump
 
-kubectl -n consul exec deploy/consul-ingress-gateway -c ingress-gateway -- wget -qO- 127.0.0.1:19000/config_dump | jq '[.. |."dynamic_route_configs"? | select(. != null)[0]]'
+kubectl -n consul exec deploy/team1-ingress-gateway -c ingress-gateway -- wget -qO- 127.0.0.1:19000/config_dump | jq '[.. |."dynamic_route_configs"? | select(. != null)[0]]'
 
-kubectl -n consul exec deploy/consul-ingress-gateway -c ingress-gateway -- wget -qO- http://localhost:8080
+kubectl -n consul exec deploy/team1-ingress-gateway -c ingress-gateway -- wget -qO- http://localhost:8080
 
-kubectl -n consul exec -it deploy/consul-ingress-gateway -c ingress-gateway -- wget --no-check-certificate -qO- http://web.virtual.consul
+kubectl -n consul exec -it deploy/team1-ingress-gateway -c ingress-gateway -- wget --no-check-certificate -qO- http://web.virtual.consul
 ```
