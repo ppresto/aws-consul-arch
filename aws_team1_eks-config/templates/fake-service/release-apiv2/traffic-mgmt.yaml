@@ -6,10 +6,10 @@ metadata:
   namespace: api
 spec:
   splits:
-    - weight: 100
+    - weight: 0
       namespace: api
       serviceSubset: v1
-    - weight: 0
+    - weight: 100
       namespace: api
       serviceSubset: v2
 ---
