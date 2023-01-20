@@ -196,6 +196,7 @@ kubectl delete -f aws_team1_eks-config/templates/fake-service/init-consul-config
 team2
 kubectl delete -f aws_team2_eks-config/templates/fake-service/release-payments
 kubectl delete -f aws_team2_eks-config/templates/fake-service/init-consul-config
+kc get po
 ```
 
 Set Consul Environment.  Pull HTTP_ADDR and TOKEN from TFCB.
