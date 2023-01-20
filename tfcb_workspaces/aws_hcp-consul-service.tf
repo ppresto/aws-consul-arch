@@ -11,7 +11,7 @@ module "ws_hcp_consul" {
   oauth_token_id       = var.oauth_token_id
   repo_branch          = "main"
   global_remote_state  = false
-  tag_names            = ["shared", "hcp", "vpc_10_20_0_0", "consul", "${var.aws_default_region}"]
+  tag_names            = ["shared", "hcp", "vpc_10_21_0_0", "consul", "${var.aws_default_region}"]
   project_id           = tfe_project.twilio.id
   variable_set_enabled = true
   variable_set         = tfe_variable_set.cloud_creds.id
