@@ -26,3 +26,5 @@ export team2_context=$(kubectl config current-context)
 alias 'team2=kubectl config use-context $team2_context'
 
 alias 'kc=kubectl -n consul'
+alias 'ka=kubectl -n api'
+alias 'kp=kubectl -n payments'

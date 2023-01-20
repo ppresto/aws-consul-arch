@@ -21,8 +21,8 @@ spec:
         service: fake-service
       annotations:
         consul.hashicorp.com/connect-inject: 'true'
-        consul.hashicorp.com/transparent-proxy: 'true'
-        consul.hashicorp.com/envoy-extra-args: '--log-level debug --disable-hot-restart'
+        #consul.hashicorp.com/transparent-proxy: 'true'
+        #consul.hashicorp.com/envoy-extra-args: '--log-level debug --disable-hot-restart'
         consul.hashicorp.com/service-tags: 'eks,v3,alpha'
         consul.hashicorp.com/service-meta-version: 'v3'
         #consul.hashicorp.com/connect-service-upstreams: 'payments.payments.pci:9090' #use localhost:9090 inside service
@@ -37,8 +37,8 @@ spec:
           env:
             - name: 'LISTEN_ADDR'
               value: '0.0.0.0:9091'
-            #- name: 'UPSTREAM_URIS'
-            #  value: 'http://payments.virtual.payments.ns.pci.ap.consul'
+            - name: 'UPSTREAM_URIS'
+              value: 'http://payments.virtual.payments.ns.pci.ap.consul'
             - name: 'NAME'
               value: 'api-v3'
             - name: 'MESSAGE'
