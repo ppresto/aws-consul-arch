@@ -6,10 +6,11 @@
 * Open TFCB Tab
   * Build HCP, eks1, eks2 workspaces
 * Open Consul Tab
-
-### iTERM
-Open aws_team1_ec2/templates/vm-example/api-service.hcl
-Open aws_team1_ec2/templates/vm-example/start.sh
+### VSCODE
+* Open aws_team1_eks-config/templates/fake-service/release-apiv2/traffic-mgmt.yaml
+* Open aws_team1_ec2/templates/vm-example/api-service.hcl
+* Open aws_team1_ec2/templates/vm-example/start.sh
+### iTerm - VM Tab
 Open VM Tab - cmd+shift+v 
 ```
 ssh-add -L 
@@ -28,10 +29,7 @@ cd /opt/consul/fake-service
 ./stop.sh
 clear
 ```
-### VSCODE
-* Open VSCODE Tab ./aws_team1_eks-config/templates/fake-service/release-apiv2/traffic-mgmt.yaml
-
-### Connect to EKS Clusters
+### iTerm - EKS Tab
 open terminal with iterm shortcut `Shift+Cmd+e` (EKS).
 ```
 cd Projects/hcp/hcp-consul
