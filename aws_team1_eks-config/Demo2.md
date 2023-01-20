@@ -14,6 +14,7 @@ Complete the following prereqs to perpare the env
 * Open aws_team1_eks-config/templates/fake-service/release-apiv2/traffic-mgmt.yaml
 * Open aws_team1_ec2/templates/vm-example/api-service.hcl
 * Open aws_team1_ec2/templates/vm-example/start.sh
+* Open aws_team1_eks-config/templates/fake-service/init-consul-config/intentions-api.yaml
 ### iTerm - VM Tab
 Open VM Tab - cmd+shift+v 
 ```
@@ -36,12 +37,12 @@ clear
 ### iTerm - EKS Tab
 open terminal with iterm shortcut `Shift+Cmd+e` (EKS).
 ```
+# Top Window
 cd Projects/hcp/hcp-consul
 dme # Doormat alias to update Terminal with AWS Creds
 source ./scripts/kubectl_connect.sh
 
-# Leave lower window along for now or fake-service will time out.
-./scripts/call_ingress_web.sh
+# Leave lower window alone for now
 ```
 ## Demo
 Review the Current Environment
@@ -53,7 +54,7 @@ Start the api service in the VM environment.
 ```
 cd /opt/consul/fake-service
 sudo ./start.sh
-curl localhost:9091
+#curl localhost:9091
 ```
 Review
 * `aws_team1_ec2/templates/vm-example/api-service.hcl`
@@ -68,50 +69,68 @@ kubectl apply -f aws_team1_eks-config/templates/fake-service/release-web/
 kubectl delete -f aws_team1_eks-config/templates/fake-service/init-consul-config/intentions-api.yaml
 kubectl -n web get pods
 ```
-Review
+REVIEW
 * Namespaces (web) - Mirroring K8s namespaces
 * Service Authentication
-* Services Authorization
 
 ### Verify `web` can communicate to `api` its upstream 
 ```
 echo "http://$(kubectl get svc team1-ingress-gateway -n consul -o json | jq -r '.status.loadBalancer.ingress[].hostname'):8080/ui"
 ```
 ### Why is this broken?
-* Intentions Overview in Consul UI (AuthZ)
-* Apply intention as CRD and see UI update
+* Web Topology Tab (No Upstream)
+* Intentions Tab (No AuthZ)
+* Apply Intention
 ```
 kubectl apply -f  aws_team1_eks-config/templates/fake-service/init-consul-config/intentions-api.yaml
 ```
 Review
-* `api` topology tab
+* `api` Topology tab
 * Refresh URL
 
-## Deploy new version of `api` to EKS cluster
-The shared EKS cluster is growing.  The `api`
+## The Shared EKS Cluster is growing. 
+The API team is adopting K8s and wants to deploy a new version of `api` on the shared EKS cluster
+* Migrate from EC2 to EKS with no downtime (to downstream services like `web`)
 
-### Run curl script to verify web -> api traffic
+### Watch `web` requests to `api` during this migration using a curl script
+EKS Tab - Lower Window
+```
 ./scripts/call_ingress_web.sh
 ```
-The terraform workspace should have deployed api-v2, but no the splitter (traffic-mgmt.yaml).  Review the configuration and appy 50/50 split. 
-Verify UI then run...
+
+### Now we are ready to Deploy api-v2 to EKS
 ```
 kubectl apply -f aws_team1_eks-config/templates/fake-service/release-apiv2
 ka get pods -l service=fake-service
 ```
+REVIEW
+* `api` Routing Tab
+* Traffic Splitter
+
 Move to 50/50, then 100%...
 ```
 kubectl apply -f aws_team1_eks-config/templates/fake-service/release-apiv2/traffic-mgmt.yaml
 ```
+* Use cases: Canary , Blue/Green Deployments
+* Migration Complete (No downtime)
 
-## Deploy api-v3
+## The API team is being asked for offer new payment functionality
+This means they need access to services within the secured PCI network.
+
+### Deploy api-v3 which will have an upstream service called payments
 ```
 kubectl apply -f aws_team1_eks-config/templates/fake-service/release-apiv3
 ```
-Enable ModHeaders in Chrome.  Add baggage header with value: 'version=3'
+REVIEW
+* `api` Routing Tab
+* Service Router
+  * Path Routing (supports GRPC)
+  * Header based routing
+  * Retry Logic
 
-* Review api service routing in Consul UI.
-* Review Fake Service URL to show traffic routed by header to pci/payments/payments (failed)
+### Validate `api-v3` requests to `payments`
+Enable ModHeaders in Chrome with header `baggage: '.*version=3.*'`
+* Review Fake Service URL to show traffic routed by header to pci/payments/payments (failing)
 
 ## Deploy pci/payments/payments
 ```
@@ -121,10 +140,17 @@ kubectl apply -f aws_team2_eks-config/templates/fake-service/release-payments/
 kp get pods -l service=fake-service
 team1
 kc delete pod -l component=mesh-gateway
+team2
+kp get pods -l service=fake-service
 ```
-* Review Fake Service URL 
+REVIEW
+* Refresh Fake Service URL
+* aws_team2_eks-config/templates/fake-service/init-consul-config
+  * ap_exportedServices.yaml
+  * intentions.yaml
 
-## DNS Lookups
+## END
+### Option DNS Lookups from VM
 DNS Service Lookups:
 ```
 dig @127.0.0.1 -p 8600 consul.service.consul
@@ -170,8 +196,6 @@ kubectl delete -f aws_team1_eks-config/templates/fake-service/init-consul-config
 team2
 kubectl delete -f aws_team2_eks-config/templates/fake-service/release-payments
 kubectl delete -f aws_team2_eks-config/templates/fake-service/init-consul-config
-
-consul namespace delete web
 ```
 
 Set Consul Environment.  Pull HTTP_ADDR and TOKEN from TFCB.
@@ -191,24 +215,37 @@ team2
 kubectl apply -f aws_team2_eks-config/templates/fake-service/init-consul-config
 kubectl apply -f aws_team2_eks-config/templates/fake-service/release-payments
 ```
-## Troubleshooting
-Read consul configuration settings from the CLI
+## Troubleshooting - Consul CLI
+Setup the terminal to connect to Consul.  Install consul locally as a prereq and get a Consul Token.
 ```
 source scripts/setConsulEnv.sh <CONSUL_TOKEN>
-consul config read -kind service-defaults -name api
-consul config read -kind service-router -name api
-consul config read -kind service-resolver -name api
-consul config read -kind service-splitter -name api
-consul config read -kind service-intentions -name api
 ```
-List and Delete work the same as Read.
-Write examples are in EC2:/opt/consul/fake-service/start.sh
 
-Read consul config from CRD
+Read `api` configuration settings from a namespace in the default partition
 ```
-kubectl describe servicedefaults api
-kubectl describe servicerouters api
-kubectl describe serviceresolvers api
-kubectl describe servicesplitters api
-kubectl describe serviceintentions api
+consul config read -kind service-defaults -name api -namespace api
+consul config read -kind service-router -name api -namespace api
+consul config read -kind service-resolver -name api -namespace api
+consul config read -kind service-splitter -name api -namespace api
+consul config read -kind service-intentions -name api -namespace api
+```
+
+Read `payments` config from the pci partition
+```
+consul config read -kind service-intentions -name payments -namespace payments -partition pci
+```
+### On EKS
+Team1 may have the consul agent deployed.  If so use that container to run Consul CLI commands.
+
+```
+team1
+kc exec -it team1-client-k7lfc -c consul -- consul config read -kind service-defaults -name api -namespace api
+```
+
+## Troubleshooting - EKS CRD's
+kubectl -n consul describe servicedefaults api
+kubectl -n consul describe servicerouters api
+kubectl -n consul describe serviceresolvers api
+kubectl -n consul describe servicesplitters api
+kubectl -n consul describe serviceintentions api
 ```
