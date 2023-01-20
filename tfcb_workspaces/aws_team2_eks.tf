@@ -11,7 +11,7 @@ module "aws-eks-2" {
   oauth_token_id      = var.oauth_token_id
   repo_branch         = "main"
   global_remote_state = false
-  tag_names           = ["team2", "eks", "${var.aws_default_region}", "${var.env}", "10.16.0.0/16"]
+  tag_names           = ["team2", "eks", "${var.aws_default_region}", "${var.env}", "10.16.0.0"]
   project_id           = tfe_project.twilio.id
   variable_set_enabled = true
   variable_set         = tfe_variable_set.cloud_creds.id
