@@ -1,4 +1,7 @@
 #!/bin/bash
+# IAM Auth Example
+# https://developer.hashicorp.com/consul/docs/security/acl/auth-methods/aws-iam#sample
+
 export CONSUL_HTTP_TOKEN="${SERVICE_ACL_TOKEN}"
 
 
@@ -14,3 +17,5 @@ consul services register ./api-service.hcl
 
 # Start Envoy with Consul
 consul connect envoy -sidecar-for api -namespace=api -admin-bind localhost:19000 > logs/envoy.log 2>&1 &
+
+

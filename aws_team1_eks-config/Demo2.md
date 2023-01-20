@@ -1,6 +1,10 @@
 # Demo
 
 ## Pre Reqs
+Complete the following prereqs to perpare the env
+### TFCB
+* Create admin workspace and build/run Project workspaces (HCP, EC2, EKS1, EKS2) for init resources.
+* Apply EKS1 and EKS2 config workspaces to deploy helm charts and bootstrap EKS clusters to HCP Consul.
 ### Browser
 * Open HCP Tab
 * Open TFCB Tab
@@ -36,47 +40,59 @@ cd Projects/hcp/hcp-consul
 dme # Doormat alias to update Terminal with AWS Creds
 source ./scripts/kubectl_connect.sh
 
-# In lower window...
+# Leave lower window along for now or fake-service will time out.
 ./scripts/call_ingress_web.sh
 ```
 ## Demo
 Review the Current Environment
-* Walk through [TFCB Workspaces](https://app.terraform.io/app/presto-projects/workspaces)
-* HCP, AWS VPC/TG, EKS cluster (Consul, and services)
-* [Show Consul Dashboard](https://hcpc-cluster-presto.consul.328306de-41b8-43a7-9c38-ca8d89d06b07.aws.hashicorp.cloud/ui/~api-ns/hcpc-cluster-presto/services/api/intentions) (consul + web + api services)
-  * Services -> api  - vm,v1 tags, Intentions
-### VM
+* [TFCB Workspaces](https://app.terraform.io/app/presto-projects/workspaces) Env Overview
+* HCP Overview
+* [Consul Overview](https://hcpc-cluster-presto.consul.328306de-41b8-43a7-9c38-ca8d89d06b07.aws.hashicorp.cloud/ui/~api-ns/hcpc-cluster-presto/services/api/intentions) (Vanilla)
+### Deploy first service on VM
 Start the api service in the VM environment.
 ```
 cd /opt/consul/fake-service
 sudo ./start.sh
 curl localhost:9091
 ```
-Review the service HCL and start scripts in vscode.
+Review
+* `aws_team1_ec2/templates/vm-example/api-service.hcl`
+* `aws_team1_ec2/templates/vm-example/start.sh`
 
-### Configure mesh and start services
-Be sure the consul helm chart to install the agent has been deployed.  Then configure the initial defaults and start the web service.
+### Deploy second service to EKS (multi-tenant K8s cluster)
+The `web` service will need to talk to `api` hosted in the classic EC2 network
 ```
 team1
 kubectl apply -f aws_team1_eks-config/templates/fake-service/init-consul-config/
 kubectl apply -f aws_team1_eks-config/templates/fake-service/release-web/
 kubectl delete -f aws_team1_eks-config/templates/fake-service/init-consul-config/intentions-api.yaml
+kubectl -n web get pods
 ```
-Delete web -> intention only to review it and add it back to show AuthZ.
+Review
+* Namespaces (web) - Mirroring K8s namespaces
+* Service Authentication
+* Services Authorization
 
-### Open Fake-service URL.
+### Verify `web` can communicate to `api` its upstream 
 ```
 echo "http://$(kubectl get svc team1-ingress-gateway -n consul -o json | jq -r '.status.loadBalancer.ingress[].hostname'):8080/ui"
 ```
-### Review Intensions if removed above
-Verify default/web -> default/api Intention
-
-Apply intention as CRD and show in UI
+### Why is this broken?
+* Intentions Overview in Consul UI (AuthZ)
+* Apply intention as CRD and see UI update
 ```
 kubectl apply -f  aws_team1_eks-config/templates/fake-service/init-consul-config/intentions-api.yaml
 ```
+Review
+* `api` topology tab
+* Refresh URL
 
-## Deploy api-v2
+## Deploy new version of `api` to EKS cluster
+The shared EKS cluster is growing.  The `api`
+
+### Run curl script to verify web -> api traffic
+./scripts/call_ingress_web.sh
+```
 The terraform workspace should have deployed api-v2, but no the splitter (traffic-mgmt.yaml).  Review the configuration and appy 50/50 split. 
 Verify UI then run...
 ```
@@ -139,9 +155,8 @@ DNS Node Lookup
 ```
 dig ip-10-20-1-111.node.usw2.consul
 ```
-## Clean up
+## Clean up - Delete deployments
 
-Delete deployments
 ```
 team1
 kubectl delete -f aws_team1_eks-config/templates/fake-service/release-apiv3/api-v3.yaml
@@ -164,7 +179,7 @@ Set Consul Environment.  Pull HTTP_ADDR and TOKEN from TFCB.
 source ./scripts/setConsulEnv.sh <CONSUL_TOKEN>
 consul namespace delete web
 ```
-## Quick Deployment
+## QuickStart - Deploy mesh defaults and services
 ```
 team1
 kubectl apply -f aws_team1_eks-config/templates/fake-service/init-consul-config
