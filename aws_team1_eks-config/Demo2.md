@@ -1,10 +1,33 @@
 # Demo
 
 ## Prep
+### Browser
 * Open HCP Tab
 * Open TFCB Tab
   * Build HCP, eks1, eks2 workspaces
 * Open Consul Tab
+
+### iTERM
+Open VM Tab - cmd+shift+v 
+```
+ssh-add -L 
+ssh-add /Users/patrickpresto/.ssh/hcp-consul
+# use `ssh -A ubuntu@host` to pass key in mem
+```
+
+SSH to the bastion host.  Refresh workspace states (`aws_usw2_shared_hcp-consul, aws_usw2_dev_team1-ec2`) and then get the ssh command from `aws_usw2_dev_team1-ec2` outputs in TFCB.
+```
+ssh -J ubuntu@54.187.61.112 ubuntu@10.20.1.111
+```
+
+Deregister api service
+```
+cd /opt/consul/fake-service
+./stop.sh
+```
+
+
+### VSCODE
 * Open VSCODE Tab ./aws_team1_eks-config/templates/fake-service/release-apiv2/traffic-mgmt.yaml
 
 ### Connect to EKS Clusters

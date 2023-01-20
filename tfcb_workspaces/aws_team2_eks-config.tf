@@ -11,7 +11,7 @@ module "aws_team2_eks-config" {
   oauth_token_id      = var.oauth_token_id
   repo_branch         = "main"
   global_remote_state = false
-  tag_names           = ["team2", "consul-agent", "${var.aws_default_region}", "${var.env}"]
+  tag_names           = ["team2", "dataplane", "${var.aws_default_region}", "${var.env}"]
   project_id           = tfe_project.twilio.id
   variable_set_enabled = true
   variable_set         = tfe_variable_set.cloud_creds.id
