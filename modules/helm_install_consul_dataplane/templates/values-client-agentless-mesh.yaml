@@ -1,16 +1,16 @@
 global:
   enabled: false
   logLevel: "debug"
-  name: aks1
-  datacenter: consul1-westus2
-  image: "hashicorp/consul-enterprise:1.14.0-ent"
-  imageK8S: docker.mirror.hashicorp.services/hashicorp/consul-k8s-control-plane:1.0.0
+  name: ${cluster_name}
+  datacenter: ${datacenter}
+  image: "hashicorp/consul-enterprise:${consul_version}"
+  imageK8S: docker.mirror.hashicorp.services/hashicorp/consul-k8s-control-plane:${consul_helm_chart_version}
   imageConsulDataplane: "hashicorp/consul-dataplane:1.0.0"
 
   enableConsulNamespaces: true
   adminPartitions:
     enabled: true
-    name: "shared"
+    name: ${partition}
   peering:
     enabled: true
   acls:
@@ -20,18 +20,23 @@ global:
       secretKey: token
   tls:
     enabled: true
-    caCert:
-      secretName: consul-ca-cert
-      secretKey: tls.crt
+    # # Client attributes only.  Not needed for dataplane
+    # enableAutoEncrypt: true
+    # gossipEncryption:
+    #   secretName: consul-gossip-key
+    #   secretKey: gossipEncryptionKey
+    # caCert:
+    #   secretName: consul-ca-cert
+    #   secretKey: tls.crt
 
 externalServers:
   enabled: true
-  hosts: ["172.17.2.11"]
-  tlsServerName: "server.consul1-westus2.consul"
-  httpsPort: 8501
+  hosts: ["${consul_external_servers}"]
+  #tlsServerName: "server.${datacenter}.consul"
+  httpsPort: 443
   grpcPort: 8502
-  useSystemRoots: false
-  k8sAuthMethodHost: https://aks-5a49ae64.hcp.westus2.azmk8s.io:443
+  useSystemRoots: true
+  k8sAuthMethodHost: ${aks_cluster}
 
 server:
   enabled: false
@@ -43,14 +48,14 @@ connectInject:
   default: true
   consulNode:
     meta: 
-      node: "aks1-agentless-node"
+      node: "${cluster_name}-agentless-node"
 
 #controller:
 #  enabled: true
 
 meshGateway:
   enabled: true
-  replicas: 3
+  replicas: 1
   service:
     enabled: true
     type: LoadBalancer

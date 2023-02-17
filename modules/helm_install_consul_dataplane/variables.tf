@@ -79,25 +79,25 @@ variable "kubernetes_namespace" {
   description = "The namespace to install the k8s resources into"
 }
 
-variable "primary_datacenter" {
-  type        = bool
-  description = "If true, installs Consul with a primary datacenter configuration. Set to false for secondary datacenters"
-  default = false
-}
+# variable "primary_datacenter" {
+#   type        = bool
+#   description = "If true, installs Consul with a primary datacenter configuration. Set to false for secondary datacenters"
+#   default = false
+# }
 
-variable "primary_datacenter_name" {
-  description = "Primary datacenter name required by helm chart"
-  default     = "dc1"
-}
+# variable "primary_datacenter_name" {
+#   description = "Primary datacenter name required by helm chart"
+#   default     = "dc1"
+# }
 
-variable "enable_cluster_peering" {
-  description = "Set this variable to true if you want to setup all Consul clusters as primaries that support cluster peering"
-  default     = false
-}
-variable "client" {
-  description = "Set this variable to true to bootstrap aks cluster to consul"
-  default     = false
-}
+# variable "enable_cluster_peering" {
+#   description = "Set this variable to true if you want to setup all Consul clusters as primaries that support cluster peering"
+#   default     = false
+# }
+# variable "client" {
+#   description = "Set this variable to true to bootstrap aks cluster to consul"
+#   default     = false
+# }
 variable "consul_external_servers" {
   description = "agents need the consul cluster location"
 }
