@@ -9,6 +9,9 @@ locals {
     GithubOrg  = "ppresto"
     Owner      = "presto"
   }
+    consul_config_file_json = jsondecode(base64decode(module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_config_file))
+    consul_gossip_key       = local.consul_config_file_json.encrypt
+    consul_retry_join       = local.consul_config_file_json.retry_join
 
 }
 

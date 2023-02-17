@@ -1,0 +1,22 @@
+#provider "azurerm" {
+#  features {}
+#}
+
+module "consul_${cluster_name}" {
+  source   = "../modules/helm_install"
+  release_name  = "${release_name}"
+  chart_name         = "${consul_chart_name}"
+  cluster_name         = "${cluster_name}"
+  datacenter           = "${datacenter}"
+  consul_partition     = "${partition}"
+  server_replicas      = 3
+  consul_version       = "${consul_version}"
+  consul_license       = file("../files/consul.lic")
+  consul_helm_chart_template = "${consul_helm_chart_template}"
+  consul_helm_chart_version  = "${consul_helm_chart_version}"
+  consul_external_servers    = "${consul_external_servers}" #HCP private endpoint address
+  consul_ca_file             = "${consul_ca_file}"
+  consul_config_file             = "${consul_config_file}"
+  consul_root_token_secret_id = "${consul_root_token_secret_id}"
+  }
+

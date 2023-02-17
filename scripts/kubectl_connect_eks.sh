@@ -3,7 +3,7 @@
 SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
 
 # Setup local AWS Env variables
-cd $SCRIPT_DIR/../quickstart-multiregion
+cd $SCRIPT_DIR/../quickstart
 output=$(terraform output -json)
 PROJECTS=($(echo $output | jq -r '. | to_entries[] | select(.key|endswith("_projects")) | .value.value[]'))
 

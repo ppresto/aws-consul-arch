@@ -401,6 +401,9 @@ module "sg-usw2" {
 output "usw2_regions" {
   value = { for k, v in local.usw2 : k => local.usw2[k].region }
 }
+output "usw2_projects" {   # Used by ./scripts/kubectl_connect_eks.sh to loop through Proj/Env and Auth to EKS clusters
+  value = [ for proj in sort(keys(local.usw2)) : proj ]
+}
 # VPC
 output "usw2_vpc_ids" {
   value = { for env in sort(keys(local.usw2)) : env => module.vpc-usw2[env].vpc_id }
@@ -415,7 +418,6 @@ output "usw2_eks_cluster_names" {
   description = "The name/id of the EKS cluster. Will block on cluster creation until the cluster is really ready"
   value       = { for k, v in local.usw2 : k => module.eks-usw2[k].cluster_name if contains(keys(v), "eks") }
 }
-
 ### Transit Gateway
 output "usw2_ec2_transit_gateway_arn" {
   description = "EC2 Transit Gateway Amazon Resource Name (ARN)"
@@ -439,4 +441,17 @@ output "usw2_ec2_ip" {
 }
 output "consul_config_file" {
   value = module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_config_file
+}
+output "consul_ca_file" {
+  value = module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_ca_file
+}
+output "consul_private_endpoint_url" {
+  value = module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_private_endpoint_url
+}
+output "consul_root_token_secret_id" {
+  value = module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_root_token_secret_id
+}
+
+output "retry_join" {
+  value = local.consul_retry_join
 }

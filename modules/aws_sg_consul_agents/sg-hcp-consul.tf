@@ -71,6 +71,15 @@ resource "aws_security_group_rule" "hcp_tcp_https" {
   cidr_blocks       = var.vpc_cidr_blocks
   description       = "The HTTPS API"
 }
+resource "aws_security_group_rule" "hcp_tcp_grpc" {
+  security_group_id = var.security_group_create == true ? aws_security_group.consul_server[0].id : var.security_group_id
+  type              = "egress"
+  protocol          = "tcp"
+  from_port         = 8502
+  to_port           = 8502
+  cidr_blocks       = var.vpc_cidr_blocks
+  description       = "GRPC for agentless dataplane support"
+}
 
 #
 ### Envoy Proxy - Int Service to Service

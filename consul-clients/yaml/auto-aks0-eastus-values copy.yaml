@@ -1,16 +1,16 @@
 global:
   enabled: false
   logLevel: "debug"
-  name: ${cluster_name}
-  datacenter: ${datacenter}
-  image: "hashicorp/consul-enterprise:${consul_version}"
-  imageK8S: docker.mirror.hashicorp.services/hashicorp/consul-k8s-control-plane:${consul_helm_chart_version}
+  name: aks0
+  datacenter: consul0-eastus
+  image: "hashicorp/consul-enterprise:1.14.0-ent"
+  imageK8S: docker.mirror.hashicorp.services/hashicorp/consul-k8s-control-plane:1.0.0
   imageConsulDataplane: "hashicorp/consul-dataplane:1.0.0"
 
   enableConsulNamespaces: true
   adminPartitions:
     enabled: true
-    name: ${partition}
+    name: "shared"
   peering:
     enabled: true
   acls:
@@ -20,23 +20,18 @@ global:
       secretKey: token
   tls:
     enabled: true
-    # # Client attributes only.  Not needed for dataplane
-    # enableAutoEncrypt: true
-    # gossipEncryption:
-    #   secretName: consul-gossip-key
-    #   secretKey: gossipEncryptionKey
-    # caCert:
-    #   secretName: consul-ca-cert
-    #   secretKey: tls.crt
+    caCert:
+      secretName: consul-ca-cert
+      secretKey: tls.crt
 
 externalServers:
   enabled: true
-  hosts: ["${consul_external_servers}"]
-  #tlsServerName: "server.${datacenter}.consul"
-  httpsPort: 443
-  #grpcPort: 8502
-  useSystemRoots: true
-  k8sAuthMethodHost: ${aks_cluster}
+  hosts: ["172.16.2.11"]
+  tlsServerName: "server.consul0-eastus.consul"
+  httpsPort: 8501
+  grpcPort: 8502
+  useSystemRoots: false
+  k8sAuthMethodHost: https://aks-d723b529.hcp.eastus.azmk8s.io:443
 
 server:
   enabled: false
@@ -48,7 +43,7 @@ connectInject:
   default: true
   consulNode:
     meta: 
-      node: "${cluster_name}-agentless-node"
+      node: "aks0-agentless-node"
 
 #controller:
 #  enabled: true

@@ -5,22 +5,6 @@
  *
  */
 
-variable "azure_key_vault_id" {
-  type        = string
-  description = "ID of Azure key vault that will store Consul federation data"
-}
-
-variable "azure_key_vault_name" {
-  type        = string
-  description = "Name of Azure Key Vault that will store Consul federation data"
-}
-
-variable "azure_key_vault_secret_name" {
-  type        = string
-  default     = "federationsecret"
-  description = "Name of Azure key vault secret holding Consul federation data"
-}
-
 variable "chart_name" {
   type        = string
   default     = "consul"
@@ -65,7 +49,7 @@ variable "consul_client_helm_chart_template" {
 variable "consul_version" {
   type        = string
   description = "Version of Consul Enterprise to install"
-  default     = "1.11.5"
+  default     = "1.14.4"
 }
 
 variable "consul_license" {
@@ -98,6 +82,7 @@ variable "kubernetes_namespace" {
 variable "primary_datacenter" {
   type        = bool
   description = "If true, installs Consul with a primary datacenter configuration. Set to false for secondary datacenters"
+  default = false
 }
 
 variable "primary_datacenter_name" {
@@ -115,8 +100,17 @@ variable "client" {
 }
 variable "consul_external_servers" {
   description = "agents need the consul cluster location"
-  default     = ""
 }
+variable "consul_config_file" {
+  description = "HCP Consul client config file"
+}
+variable "consul_ca_file" {
+  description = "HCP Consul CA file"
+}
+variable "consul_root_token_secret_id" {
+  description = "HCP Consul root token for initial configuration"
+}
+
 
 variable "release_name" {
   type        = string
@@ -127,15 +121,6 @@ variable "datacenter" {
   type        = string
   default     = "consul datacenter"
   description = "dc1"
-}
-variable "resource_group_name" {
-  description = "Resource group name"
-  type        = string
-}
-
-variable "key_vault_resource_group_name" {
-  description = "Resource group name where key_vault lives if different then current VNET"
-  type        = string
 }
 variable "server_replicas" {
   type        = number
