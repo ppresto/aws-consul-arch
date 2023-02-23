@@ -69,6 +69,13 @@ variable "allowed_bastion_cidr_blocks_ipv6" {
   default     = []
 }
 
+variable "consul_acl_token_secret_id" {
+  type = string
+}
+variable "consul_service" {
+  description = "service name that will be running on ec2"
+  default     = "default"
+}
 variable "consul_public_endpoint_url" {
   description = "hcp consul_public_endpoint_url"
   type        = string
@@ -98,5 +105,5 @@ variable "allowed_bastion_cidr_blocks" {
 }
 
 locals {
-  region_shortname = join("", regex("([a-z]{2}).*-([a-z]).*-(\\d+)", var.region))
+  region_shortname = join("", regex("([a-z]{2}).*-([a-z]).*-(\\d+)", data.aws_region.current.name))
 }

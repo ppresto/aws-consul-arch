@@ -59,7 +59,7 @@ resource "kubernetes_secret" "consul-ca-cert" {
     name      = "consul-ca-cert"
     namespace = var.kubernetes_namespace
   }
-  data = {"tls.crt" = var.consul_ca_file}
+  data = { "tls.crt" = var.consul_ca_file }
 }
 
 # Get Consul Cluster bootstrap token
@@ -69,5 +69,5 @@ resource "kubernetes_secret" "consul-bootstrap-token" {
     name      = "consul-bootstrap-acl-token"
     namespace = var.kubernetes_namespace
   }
-  data = {"token" = var.consul_root_token_secret_id}
+  data = { "token" = var.consul_root_token_secret_id }
 }

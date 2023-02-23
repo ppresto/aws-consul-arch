@@ -1,5 +1,6 @@
 ## Bastion ec2
 
+data "aws_region" "current" {}
 data "aws_ssm_parameter" "ubuntu_1804_ami_id" {
   name = "/aws/service/canonical/ubuntu/server/18.04/stable/current/amd64/hvm/ebs-gp2/ami-id"
 }
@@ -10,7 +11,8 @@ data "template_file" "userdata" {
     CONSUL_CA_FILE     = var.consul_ca_file
     CONSUL_CONFIG_FILE = var.consul_config_file
     CONSUL_ACL_TOKEN   = var.consul_root_token_secret_id
-    SERVICE_ACL_TOKEN  = nonsensitive(data.consul_acl_token_secret_id.service.secret_id)
+    SERVICE_ACL_TOKEN  = var.consul_acl_token_secret_id
+    CONSUL_SERVICE     = var.consul_service
   }
 }
 resource "aws_instance" "ec2" {
@@ -24,18 +26,18 @@ resource "aws_instance" "ec2" {
   user_data                   = data.template_file.userdata.rendered
   tags = merge(
     { "Name" = "${var.hostname}" },
-    { "Project" = "${var.prefix}-${var.region}-${var.hostname}" }
+    { "Project" = "${var.prefix}-${local.region_shortname}-${var.hostname}" }
   )
 }
 
 ## Bastion SG
 resource "aws_security_group" "bastion" {
-  name_prefix = "${var.region}-bastion-sg"
+  name_prefix = "${local.region_shortname}-bastion-sg"
   description = "Firewall for the bastion instance"
   vpc_id      = var.vpc_id
   tags = merge(
-    { "Name" = "${var.region}-bastion-sg" },
-    { "Project" = var.region }
+    { "Name" = "${local.region_shortname}-bastion-sg" },
+    { "Project" = "${var.prefix}-${local.region_shortname}-ec2" }
   )
 }
 

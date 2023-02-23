@@ -7,6 +7,9 @@
 
 # license files
 **/*.lic
+
+# example code
+**/auto-*.tf
 # Crash log files
 crash.log
 crash.*.log

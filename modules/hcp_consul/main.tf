@@ -1,9 +1,9 @@
 data "hcp_consul_versions" "default" {}
-
+data "aws_region" "current" {}
 resource "hcp_hvn" "example_hvn" {
   hvn_id         = var.hvn_id
   cloud_provider = var.cloud_provider
-  region         = var.region
+  region         = data.aws_region.current.name
   cidr_block     = var.cidr_block
 }
 resource "hcp_consul_cluster" "example_hcp" {

@@ -1,17 +1,11 @@
-data "aws_region" "current" {}
-
 locals {
-  name             = "${var.prefix}-${local.region_shortname}-${replace(basename(path.cwd), "_", "-")}"
-  region_shortname = join("", regex("([a-z]{2}).*-([a-z]).*-(\\d+)", data.aws_region.current.name))
+  name = "${var.prefix}-${replace(basename(path.cwd), "_", "-")}"
+  #region_shortname = join("", regex("([a-z]{2}).*-([a-z]).*-(\\d+)", data.aws_region.current.name))
   tags = {
     Project    = local.name
     GithubRepo = "aws-consul-ent-eks"
     GithubOrg  = "ppresto"
-    Owner      = "presto"
   }
-    consul_config_file_json = jsondecode(base64decode(module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_config_file))
-    consul_gossip_key       = local.consul_config_file_json.encrypt
-    consul_retry_join       = local.consul_config_file_json.retry_join
 
 }
 

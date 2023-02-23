@@ -1,0 +1,76 @@
+global:
+  enabled: false
+  logLevel: "debug"
+  name: presto-usw2-app1
+  datacenter: presto-cluster-usw2
+  image: "hashicorp/consul-enterprise:1.14.4-ent"
+  imageK8S: docker.mirror.hashicorp.services/hashicorp/consul-k8s-control-plane:1.0.2
+  imageConsulDataplane: "hashicorp/consul-dataplane:1.0.0"
+
+  enableConsulNamespaces: true
+  adminPartitions:
+    enabled: true
+    name: default
+  peering:
+    enabled: true
+  acls:
+    manageSystemACLs: true
+    bootstrapToken:
+      secretName: consul-bootstrap-acl-token
+      secretKey: token
+  tls:
+    enabled: true
+    # # Client attributes only.  Not needed for dataplane
+    # enableAutoEncrypt: true
+    # gossipEncryption:
+    #   secretName: consul-gossip-key
+    #   secretKey: gossipEncryptionKey
+    # caCert:
+    #   secretName: consul-ca-cert
+    #   secretKey: tls.crt
+
+externalServers:
+  enabled: true
+  hosts: ["presto-cluster-usw2.private.consul.328306de-41b8-43a7-9c38-ca8d89d06b07.aws.hashicorp.cloud"]
+  #tlsServerName: "server.presto-cluster-usw2.consul"
+  httpsPort: 443
+  grpcPort: 8502
+  useSystemRoots: true
+  k8sAuthMethodHost: https://5BE7F8102DFA3B71003DF68F61E3EF2F.gr7.us-west-2.eks.amazonaws.com
+
+server:
+  enabled: false
+
+connectInject:
+  transparentProxy:
+    defaultEnabled: true
+  enabled: true
+  default: true
+  consulNode:
+    meta: 
+      node: "presto-usw2-app1-agentless-node"
+
+#controller:
+#  enabled: true
+
+meshGateway:
+  enabled: true
+  replicas: 1
+  service:
+    enabled: true
+    type: LoadBalancer
+    # annotations: |
+    #   service.beta.kubernetes.io/aws-load-balancer-type: "external"
+    #   service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
+    #   service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+
+ingressGateways:
+  enabled: true
+  defaults:
+    replicas: 1
+  gateways:
+    - name: ingress-gateway
+      service:
+        type: LoadBalancer
+        # annotations: |
+        #   service.beta.kubernetes.io/aws-load-balancer-type: external

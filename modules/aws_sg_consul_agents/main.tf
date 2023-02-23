@@ -4,7 +4,7 @@ resource "aws_security_group" "consul_server" {
   description = "Firewall for the consul server."
   vpc_id      = var.vpc_id
   tags = merge(
-    { "Name" = "${var.region}" },
+    { "Name" = "${var.name_prefix}" },
     { "Owner" = "presto" }
   )
 }

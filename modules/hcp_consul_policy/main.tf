@@ -20,17 +20,18 @@
 #   }
 # }
 
+
 # Service Policies and Tokens (api)
 resource "consul_acl_policy" "service" {
-  name        = var.hostname
+  name        = var.consul_service
   datacenters = [var.consul_datacenter]
   rules       = <<-RULE
-    service "${var.hostname}*" {
+    service "${var.consul_service}*" {
       policy = "write"
       intenstions = "read"
     }
 
-    service "${var.hostname}-sidecar-proxy" {
+    service "${var.consul_service}-sidecar-proxy" {
       policy = "write"
     }
 
@@ -69,7 +70,7 @@ resource "consul_acl_policy" "service" {
 # }
 
 resource "consul_acl_token" "service" {
-  description = "${var.hostname} token"
+  description = "${var.consul_service} token"
   policies    = ["${consul_acl_policy.service.name}"]
   local       = true
 }

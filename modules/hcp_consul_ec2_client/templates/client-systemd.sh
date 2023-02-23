@@ -109,13 +109,13 @@ LimitNOFILE=65536
 WantedBy=multi-user.target
 EOF
 
-# Configure fake-service (api)
-cat >/opt/consul/fake-service/api-service.hcl <<- EOF
+# Configure fake-service (ex: ${CONSUL_SERVICE} = api)
+cat >/opt/consul/fake-service/${CONSUL_SERVICE}-service.hcl <<- EOF
 {
   "service": {
-    "name": "api",
+    "name": "${CONSUL_SERVICE}",
     "namespace": "default",
-    "id": "api",
+    "id": "${CONSUL_SERVICE}",
     "port": 9091,
     "token": "${SERVICE_ACL_TOKEN}",
     "tags": ["vm","v1"],
@@ -137,9 +137,9 @@ cat >/opt/consul/fake-service/api-service.hcl <<- EOF
 }
 EOF
 
-cat >/opt/consul/fake-service/central_config/service_intentions_api.hcl <<- EOF
+cat >/opt/consul/fake-service/central_config/service_intentions_${CONSUL_SERVICE}.hcl <<- EOF
 Kind = "service-intentions"
-Name = "api"
+Name = "${CONSUL_SERVICE}"
 Sources = [
   {
     Name   = "web"
@@ -148,15 +148,15 @@ Sources = [
 ]
 EOF
 
-cat >/opt/consul/fake-service/central_config/service_defaults_api.hcl <<- EOF
+cat >/opt/consul/fake-service/central_config/service_defaults_${CONSUL_SERVICE}.hcl <<- EOF
 Kind = "service-defaults"
-Name = "api"
+Name = "${CONSUL_SERVICE}"
 Protocol = "http"
 EOF
 
-cat >/opt/consul/fake-service/api-service-resolver.hcl <<- EOF
+cat >/opt/consul/fake-service/${CONSUL_SERVICE}-service-resolver.hcl <<- EOF
 Kind          = "service-resolver"
-Name          = "api"
+Name          = "${CONSUL_SERVICE}"
 DefaultSubset = "v1"
 Subsets = {
   v1 = {
@@ -168,9 +168,9 @@ Subsets = {
 }
 EOF
 
-cat >/opt/consul/fake-service/api-service-splitter.hcl <<- EOF
+cat >/opt/consul/fake-service/${CONSUL_SERVICE}-service-splitter.hcl <<- EOF
 Kind = "service-splitter"
-Name = "api"
+Name = "${CONSUL_SERVICE}"
 Splits = [
   {
     Weight        = 100
@@ -187,30 +187,30 @@ cat >/opt/consul/fake-service/start.sh <<- EOF
 #!/bin/bash
 
 export CONSUL_HTTP_TOKEN="${CONSUL_ACL_TOKEN}"
-#consul config write ./central_config/service_defaults_api.hcl
-#consul config write ./central_config/service_intentions_api.hcl
-#consul config write ./api-service-resolver.hcl
-#consul config write ./api-service-splitter.hcl
+#consul config write ./central_config/service_defaults_${CONSUL_SERVICE}.hcl
+#consul config write ./central_config/service_intentions_${CONSUL_SERVICE}.hcl
+#consul config write ./${CONSUL_SERVICE}-service-resolver.hcl
+#consul config write ./${CONSUL_SERVICE}-service-splitter.hcl
 
 # Start API Service
 export MESSAGE="API RESPONSE"
-export NAME="api-v1"
+export NAME="${CONSUL_SERVICE}-v1"
 export SERVER_TYPE="http"
 export LISTEN_ADDR="127.0.0.1:9091"
 nohup ./bin/fake-service > logs/fake-service.out 2>&1 &
 sleep 1
-consul services register ./api-service.hcl
+consul services register ./${CONSUL_SERVICE}-service.hcl
 sleep 1
-consul connect envoy -sidecar-for api -admin-bind localhost:19000 > logs/envoy.log 2>&1 &
+consul connect envoy -sidecar-for ${CONSUL_SERVICE} -admin-bind localhost:19000 > logs/envoy.log 2>&1 &
 EOF
 
 cat >/opt/consul/fake-service/stop.sh <<- EOF
 #!/bin/bash
-#consul config delete -kind service-splitter -name api
-#consul config delete -kind service-resolver -name api
-#consul config delete -kind service-intentions -name api
-#consul config delete -kind service-defaults -name api
-consul services deregister ./api-service.hcl
+#consul config delete -kind service-splitter -name ${CONSUL_SERVICE}
+#consul config delete -kind service-resolver -name ${CONSUL_SERVICE}
+#consul config delete -kind service-intentions -name ${CONSUL_SERVICE}
+#consul config delete -kind service-defaults -name ${CONSUL_SERVICE}
+consul services deregister ./${CONSUL_SERVICE}-service.hcl
 pkill envoy
 pkill fake-service
 EOF

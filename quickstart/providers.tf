@@ -30,8 +30,25 @@ terraform {
   }
 }
 
+provider "aws" {
+  alias  = "usw2"
+  region = "us-west-2"
+}
+
+provider "aws" {
+  alias  = "use1"
+  region = "us-east-1"
+}
+provider "consul" {
+  alias      = "use1-consul"
+  address    = module.hcp_consul_use1[local.hvn_list_use1[0]].consul_public_endpoint_url
+  datacenter = module.hcp_consul_use1[local.hvn_list_use1[0]].datacenter
+  token      = module.hcp_consul_use1[local.hvn_list_use1[0]].consul_root_token_secret_id
+}
+
 # Required to setup policies/tokens for EC2 services
 provider "consul" {
+  alias      = "usw2-consul"
   address    = module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_public_endpoint_url
   datacenter = module.hcp_consul_usw2[local.hvn_list_usw2[0]].datacenter
   token      = module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_root_token_secret_id

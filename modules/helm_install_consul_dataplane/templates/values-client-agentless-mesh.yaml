@@ -59,8 +59,10 @@ meshGateway:
   service:
     enabled: true
     type: LoadBalancer
-    annotations: |
-      service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+    # annotations: |
+    #   service.beta.kubernetes.io/aws-load-balancer-type: "external"
+    #   service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
+    #   service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
 
 ingressGateways:
   enabled: true
@@ -70,3 +72,5 @@ ingressGateways:
     - name: ingress-gateway
       service:
         type: LoadBalancer
+        # annotations: |
+        #   service.beta.kubernetes.io/aws-load-balancer-type: external
