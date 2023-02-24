@@ -13,6 +13,7 @@
     - [AWS EC2 - Deploy service (api)](#aws-ec2---deploy-service-api)
   - [Consul - DNS](#consul---dns)
     - [Consul - DNS lookups](#consul---dns-lookups)
+    - [Consul - DNS lookups on EKS](#consul---dns-lookups-on-eks)
     - [Consul - DNS Forwarding](#consul---dns-forwarding)
     - [Consul - Deregister Node from HCP.](#consul---deregister-node-from-hcp)
     - [Consul - Connect CA](#consul---connect-ca)
@@ -20,6 +21,7 @@
   - [EKS / Kubernetes](#eks--kubernetes)
     - [EKS - Login / Set Context](#eks---login--set-context)
     - [EKS - Helm Install manually to debug](#eks---helm-install-manually-to-debug)
+    - [EKS - Uninstall Helm chart](#eks---uninstall-helm-chart)
     - [EKS - Test pod connectivity to Consul](#eks---test-pod-connectivity-to-consul)
     - [EKS - DNS Troubleshooting](#eks---dns-troubleshooting)
     - [EKS - Change proxy global defaults](#eks---change-proxy-global-defaults)
@@ -28,6 +30,8 @@
   - [Envoy](#envoy)
     - [Envoy - Read fake-service envoy-sidcar configuration](#envoy---read-fake-service-envoy-sidcar-configuration)
     - [Consul - Ingress GW](#consul---ingress-gw)
+  - [Partitions](#partitions)
+- [Questions](#questions)
 
 <!-- /TOC -->
 # Troubleshooting
@@ -174,6 +178,21 @@ References:
 https://learn.hashicorp.com/tutorials/consul/get-started-service-discover
 https://www.consul.io/docs/discovery/dns#dns-with-acls
 
+### Consul - DNS lookups on EKS
+Test coredns, start busybox, and use nslookup
+
+```consuldnsIP=$(kubectl -n consul get svc consul-dns -o json | jq -r '.spec.clusterIP')
+corednsIP=$(kubectl -n kube-system get svc kube-dns -o json | jq -r '.spec.clusterIP')
+kubectl run busybox --restart=Never --image=busybox:1.28 -- sleep 3600
+kubectl exec busybox -- nslookup kubernetes $corednsIP
+```
+
+Additional examples:
+```
+kubectl exec busybox -- nslookup consul.service.consul
+kubectl exec busybox -- nslookup api.service.az1.ns.default.ap.aks1-westus2.dc.consul
+kubectl exec busybox -- nslookup api.virtual.az1.ns.default.ap.aks1-westus2.dc.consul
+```
 ### Consul - DNS Forwarding
 Once DNS lookups are working through the local consul client,  setup DNS forwarding to port 53 to work for all requests by default.
 https://learn.hashicorp.com/tutorials/consul/dns-forwarding
@@ -229,16 +248,18 @@ Manually install consul using Helm.  The test.yaml below can be created from exi
 ```
 helm repo add hashicorp https://helm.releases.hashicorp.com
 
-# --create-namespace
-# 0.41.1 , consul 1.11.8-ent
-helm install team2 hashicorp/consul --namespace consul --version 0.41.1 --set global.image="hashicorp/consul-enterprise:1.11.8-ent" --values ./helm/test.yaml
+# 0.43.0 , consul 1.14.3-ent
+helm install team2 hashicorp/consul --namespace consul --version 1.0.2 --set global.image="hashicorp/consul-enterprise:1.14.3-ent" --values ./yaml/test.yaml
 
-# 0.43.0 , consul 1.12.4-ent
-helm install team2 hashicorp/consul --namespace consul --version 0.45.0 --set global.image="hashicorp/consul-enterprise:1.12.4-ent" --values ./helm/test.yaml
+# 1.0.2 , consul 1.14.4-ent
 
-# 1.0.2 , consul 1.14.3-ent
-helm install team2 hashicorp/consul --namespace consul --version 1.0.2 --set global.image="hashicorp/consul-enterprise:1.14.3-ent" --values ./helm/mytest.yaml
 
+```
+
+### EKS - Uninstall Helm chart
+Use consul-k8s cli to `cleanly` uninstall the consul dataplane, client, or server.
+```
+consul-k8s uninstall -auto-approve -wipe-data
 ```
 
 The Helm release name must be unique for each Kubernetes cluster. The Helm chart uses the Helm release name as a prefix for the ACL resources that it creates so duplicate names will overwrite ACL's.
@@ -412,3 +433,20 @@ kubectl -n consul exec deploy/team1-ingress-gateway -c ingress-gateway -- wget -
 
 kubectl -n consul exec -it deploy/team1-ingress-gateway -c ingress-gateway -- wget --no-check-certificate -qO- http://web.virtual.consul
 ```
+
+## Partitions
+
+```
+consul peering generate-token -partition=eastus-shared -name=consul1-westus2 -server-external-addresses=1.2.3.4:8502 -token "${CONSUL_HTTP_TOKEN}"
+consul peering delete -name=presto-cluster-usw2 -partition=test -token "${CONSUL_HTTP_TOKEN}"
+
+curl -sk --header "X-Consul-Token: ${CONSUL_HTTP_TOKEN}" \
+--request DELETE ${CONSUL_HTTP_ADDR}/v1/peering/presto-cluster-usw2
+```
+
+# Questions
+* What is the best way to test exported service (from dataplane partition) is available to another dataplane?
+* How long does it take for Consul to see the current health of a svc using the dataplane?  MGW? deletion of Partition?
+* Can the ingress gateway instances run across 2 EKS clusters (dataplane) using default partition?  This creates two eks svcs that each have an LB.  The second LB appears to not work although all instances are successfully registered.
+* Does Consul 1.14 agent on EKS work for service mesh?
+

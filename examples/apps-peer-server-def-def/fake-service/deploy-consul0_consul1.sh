@@ -33,3 +33,6 @@ else
     echo "Deploying Services"
     deploy
 fi
+
+# API service Observability
+# curl -sk --header "X-Consul-Token: ${CONSUL_HTTP_TOKEN}"     --request GET ${CONSUL_HTTP_ADDR}/v1/health/service/api?partition=test | jq -r

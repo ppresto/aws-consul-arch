@@ -45,7 +45,7 @@ connectInject:
   transparentProxy:
     defaultEnabled: true
   enabled: true
-  default: true
+  default: false
   consulNode:
     meta: 
       node: "presto-usw2-app1-agentless-node"

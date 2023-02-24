@@ -78,33 +78,27 @@ locals {
           "target_subnets" : "public_subnets"
           "associate_public_ip_address" : true
         }
+      }
     }
-    # "usw2-app2" = {
-    #   #"name" : "usw2-app1",
-    #   #"region" : "us-west-2",
-    #   "vpc" = {
-    #     "name" : "${var.prefix}-usw2-app2"
-    #     "cidr" : "10.17.0.0/20",
-    #     "private_subnets" : ["10.17.1.0/24", "10.17.2.0/24", "10.17.3.0/24"],
-    #     "public_subnets" : ["10.17.11.0/24", "10.17.12.0/24"],
-    #     "routable_cidr_blocks" : ["10.17.1.0/24", "10.17.2.0/24", "10.17.3.0/24"]
-    #   }
-    #   "ec2" = {
-    #     "api01" = {
-    #       "ec2_ssh_key" : var.ec2_key_pair_name
-    #       "target_subnets" : "private_subnets"
-    #       "associate_public_ip_address" : false
-    #       "service" : "api"
-    #     }
-    #     "api02" = { # no policy created, token not avaiable.  manually install or integrate with Vault.
-    #       "ec2_ssh_key" : var.ec2_key_pair_name
-    #       "target_subnets" : "private_subnets"
-    #       "associate_public_ip_address" : false
-    #       "service" : "api"
-    #     }
-    #   }
-    # }
-  }
+    "usw2-app2" = {
+      #"name" : "usw2-app1",
+      #"region" : "us-west-2",
+      "vpc" = {
+        "name" : "${var.prefix}-usw2-app2"
+        "cidr" : "10.17.0.0/20",
+        "private_subnets" : ["10.17.1.0/24", "10.17.2.0/24", "10.17.3.0/24"],
+        "public_subnets" : ["10.17.11.0/24", "10.17.12.0/24"],
+        "routable_cidr_blocks" : ["10.17.1.0/24", "10.17.2.0/24", "10.17.3.0/24"]
+      }
+      "eks" = {
+        "cluster_name" : "${var.prefix}-usw2-app2",
+        "cluster_version" : var.eks_cluster_version,
+        "ec2_ssh_key" : var.ec2_key_pair_name,
+        "cluster_endpoint_private_access" : true,
+        "cluster_endpoint_public_access" : true,
+        #"service_ipv4_cidr" : "10.16.16.0/24" #Can't overlap with VPC CIDR
+      }
+    }
   }
   # HCP Runtime
   # consul_config_file_json_usw2 = jsondecode(base64decode(module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_config_file))

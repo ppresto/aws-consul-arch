@@ -1,8 +1,4 @@
-provider "aws" {
-  alias  = "usw2"
-  region = "us-west-2"
-}
-data "aws_region" "current" {
+data "aws_region" "usw2" {
   provider = aws.usw2
 }
 data "aws_availability_zones" "usw2" {
@@ -23,9 +19,10 @@ locals {
       "vpc" = {
         "name" : "${var.prefix}-usw2-shared"
         "cidr" : "10.15.0.0/20",
-        "private_subnets" : ["10.15.1.0/24", "10.15.2.0/24"],
-        "public_subnets" : ["10.15.11.0/24", "10.15.12.0/24"],
-        "routable_cidr_blocks" : ["10.15.1.0/24", "10.15.2.0/24"],
+        "private_subnets" : ["10.15.1.0/24", "10.15.2.0/24", "10.15.3.0/24"],
+        "public_subnets" : ["10.15.11.0/24", "10.15.12.0/24", "10.15.13.0/24"],
+        #"routable_cidr_blocks" : ["10.15.1.0/24", "10.15.2.0/24", "10.15.3.0/24"],
+        "routable_cidr_blocks" : ["10.15.0.0/20"],
       }
       "tgw" = { #Only 1 TGW needed per region/data center.  Other VPC's can attach to it.
         "name" : "${var.prefix}-usw2-shared-tgw",
@@ -36,7 +33,7 @@ locals {
         "hvn_id"         = "${var.prefix}-hvn-usw2"
         "cloud_provider" = var.cloud_provider
         #"region"             = "us-west-2"
-        "cidr_block"         = "172.25.16.0/23"
+        "cidr_block"         = "172.25.34.0/23"
         "cluster_id"         = "${var.prefix}-cluster-usw2"
         "tier"               = "development"
         "min_consul_version" = var.min_consul_version
@@ -57,44 +54,57 @@ locals {
       "vpc" = {
         "name" : "${var.prefix}-usw2-app1"
         "cidr" : "10.16.0.0/20",
-        "private_subnets" : ["10.16.1.0/24", "10.16.2.0/24"],
-        "public_subnets" : ["10.16.11.0/24", "10.16.12.0/24"],
-        "routable_cidr_blocks" : ["10.16.11.0/24", "10.16.12.0/24"]
+        "private_subnets" : ["10.16.1.0/24", "10.16.2.0/24", "10.16.3.0/24"],
+        "public_subnets" : ["10.16.11.0/24", "10.16.12.0/24","10.16.13.0/24"],
+        "routable_cidr_blocks" : ["10.16.0.0/20"]
       }
       "eks" = {
         "cluster_name" : "${var.prefix}-usw2-app1",
         "cluster_version" : var.eks_cluster_version,
         "ec2_ssh_key" : var.ec2_key_pair_name,
         "cluster_endpoint_private_access" : true,
-        "cluster_endpoint_public_access" : true
+        "cluster_endpoint_public_access" : true,
+        #"service_ipv4_cidr" : "10.16.16.0/24" #Can't overlap with VPC CIDR
+      }
+      "ec2" = {
+        "api01" = {
+          "ec2_ssh_key" : var.ec2_key_pair_name
+          "target_subnets" : "private_subnets"
+          "associate_public_ip_address" : false
+          "service" : "api"
+        }
+        "pulic01" = {
+          "ec2_ssh_key" : var.ec2_key_pair_name
+          "target_subnets" : "public_subnets"
+          "associate_public_ip_address" : true
+        }
       }
     }
-    # "usw2-app2" = {
-    #   #"name" : "usw2-app1",
-    #   #"region" : "us-west-2",
-    #   "vpc" = {
-    #     "name" : "${var.prefix}-usw2-app2"
-    #     "cidr" : "10.17.0.0/20",
-    #     "private_subnets" : ["10.17.1.0/24", "10.17.2.0/24"],
-    #     "public_subnets" : ["10.17.11.0/24", "10.17.12.0/24"],
-    #     "routable_cidr_blocks" : ["10.17.1.0/24", "10.17.2.0/24"]
-    #   }
-    #   "ec2" = {
-    #     "api01" = {
-    #       "ec2_ssh_key" : var.ec2_key_pair_name
-    #       "target_subnets" : "private_subnets"
-    #       "associate_public_ip_address" : false
-    #       "service" : "api"
-    #     }
-    #     "api02" = {
-    #       "ec2_ssh_key" : var.ec2_key_pair_name
-    #       "target_subnets" : "private_subnets"
-    #       "associate_public_ip_address" : false
-    #       "service" : "api"
-    #     }
-    #   }
-    # }
+    "usw2-app2" = {
+      #"name" : "usw2-app1",
+      #"region" : "us-west-2",
+      "vpc" = {
+        "name" : "${var.prefix}-usw2-app2"
+        "cidr" : "10.17.0.0/20",
+        "private_subnets" : ["10.17.1.0/24", "10.17.2.0/24", "10.17.3.0/24"],
+        "public_subnets" : ["10.17.11.0/24", "10.17.12.0/24"],
+        "routable_cidr_blocks" : ["10.17.1.0/24", "10.17.2.0/24", "10.17.3.0/24"]
+      }
+      "eks" = {
+        "cluster_name" : "${var.prefix}-usw2-app2",
+        "cluster_version" : var.eks_cluster_version,
+        "ec2_ssh_key" : var.ec2_key_pair_name,
+        "cluster_endpoint_private_access" : true,
+        "cluster_endpoint_public_access" : true,
+        #"service_ipv4_cidr" : "10.16.16.0/24" #Can't overlap with VPC CIDR
+      }
+    }
   }
+  # HCP Runtime
+  # consul_config_file_json_usw2 = jsondecode(base64decode(module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_config_file))
+  # consul_gossip_key_usw2       = local.consul_config_file_json_usw2.encrypt
+  # consul_retry_join_usw2       = local.consul_config_file_json_usw2.retry_join
+
   # Resource location lists used to build other data structures
   tgw_list_usw2 = flatten([for env, values in local.usw2 : ["${env}"] if contains(keys(values), "tgw")])
   hvn_list_usw2 = flatten([for env, values in local.usw2 : ["${env}"] if contains(keys(values), "hcp-consul")])
@@ -183,10 +193,14 @@ locals {
         "vpc_env"                     = env
         "hostname"                    = ec2
         "associate_public_ip_address" = attr.associate_public_ip_address
+        "service"                     = try(attr.service, "default")
+        "create_consul_policy"        = try(attr.create_consul_policy, false)
       }
     }])
   ])
   ec2_map_usw2 = { for item in local.ec2_usw2 : keys(item)[0] => values(item)[0] }
+
+  ec2_service_list_usw2 = distinct([for values in local.ec2_map_usw2 : "${values.service}"])
 
 }
 
@@ -226,6 +240,16 @@ module "vpc-usw2" {
   enable_dns_hostnames     = true
   enable_ipv6              = false
   default_route_table_name = "${var.prefix}-${each.key}-vpc1"
+
+  # Cloudwatch log group and IAM role will be created
+  enable_flow_log                      = true
+  create_flow_log_cloudwatch_log_group = true
+  create_flow_log_cloudwatch_iam_role  = true
+
+  flow_log_max_aggregation_interval         = 60
+  flow_log_cloudwatch_log_group_name_prefix = "/aws/${local.usw2[each.key].vpc.name}"
+  flow_log_cloudwatch_log_group_name_suffix = "flow"
+
   tags = {
     Terraform  = "true"
     Owner      = "${var.prefix}"
@@ -233,9 +257,13 @@ module "vpc-usw2" {
   }
   private_subnet_tags = {
     Tier = "Private"
+    "kubernetes.io/role/internal-elb" = 1
+    "kubernetes.io/cluster/${try(local.usw2[each.key].eks.cluster_name, var.prefix)}" = "shared"
   }
   public_subnet_tags = {
     Tier = "Public"
+    "kubernetes.io/role/elb" = 1
+    "kubernetes.io/cluster/${try(local.usw2[each.key].eks.cluster_name, var.prefix)}" = "shared"
   }
   default_route_table_tags = {
     Name = "${var.prefix}-vpc1-default"
@@ -336,14 +364,18 @@ module "eks-usw2" {
     aws = aws.usw2
   }
   source  = "terraform-aws-modules/eks/aws"
-  version = "19.5.1"
+  version = "19.10.0"
+  #version = "18.4.1"
 
   for_each                              = { for k, v in local.usw2 : k => v if contains(keys(v), "eks") }
   cluster_name                          = try(local.usw2[each.key].eks.cluster_name, local.name)
   cluster_version                       = try(local.usw2[each.key].eks.eks_cluster_version, var.eks_cluster_version)
   cluster_endpoint_private_access       = try(local.usw2[each.key].eks.cluster_endpoint_private_access, true)
   cluster_endpoint_public_access        = try(local.usw2[each.key].eks.cluster_endpoint_public_access, true)
-  cluster_additional_security_group_ids = [module.sg-usw2[each.key].consul_server_securitygroup_id]
+  cluster_service_ipv4_cidr             = try(local.usw2[each.key].eks.service_ipv4_cidr, "172.20.0.0/16")
+  # cluster_additional_security_group_ids = [module.sg-consul-dataplane-usw2[each.key].securitygroup_id]
+  # node_security_group_id                = module.sg-consul-dataplane-usw2[each.key].securitygroup_id
+  # create_node_security_group            = false
   vpc_id                                = module.vpc-usw2[each.key].vpc_id
   subnet_ids                            = module.vpc-usw2[each.key].private_subnets
   cluster_addons = {
@@ -356,10 +388,58 @@ module "eks-usw2" {
     }
   }
   create_kms_key = true
+  # cluster_encryption_config = [{
+  #   provider_key_arn = aws_kms_key.eks.arn
+  #   resources        = ["secrets"]
+  # }]
+
+  #   # Extend cluster security group rules
+  # cluster_security_group_additional_rules = {
+  #   ingress_nodes_ephemeral_ports_tcp = {
+  #     description                = "Nodes on ephemeral ports"
+  #     protocol                   = "tcp"
+  #     from_port                  = 1025
+  #     to_port                    = 65535
+  #     type                       = "ingress"
+  #     source_node_security_group = true
+  #   }
+  #   # Test: https://github.com/terraform-aws-modules/terraform-aws-eks/pull/2319
+  #   ingress_source_security_group_id = {
+  #     description              = "Ingress from another computed security group"
+  #     protocol                 = "tcp"
+  #     from_port                = 22
+  #     to_port                  = 22
+  #     type                     = "ingress"
+  #     source_security_group_id = aws_security_group.additional.id
+  #   }
+  # }
+
+  # # Extend node-to-node security group rules
+  node_security_group_additional_rules = {
+    ingress_self_all = {
+      description = "Node to node all ports/protocols"
+      protocol    = "-1"
+      from_port   = 0
+      to_port     = 0
+      type        = "ingress"
+      self        = true
+    }
+    # Test: https://github.com/terraform-aws-modules/terraform-aws-eks/pull/2319
+    ingress_source_security_group_id = {
+      description              = "Ingress from routable networks"
+      protocol                 = "tcp"
+      from_port                = 0
+      to_port                  = 0
+      type                     = "ingress"
+      cidr_blocks              = concat(local.all_routable_cidr_blocks_usw2, [local.usw2[local.hvn_list_usw2[0]].hcp-consul.cidr_block])
+    }
+  }
   eks_managed_node_group_defaults = {
     ami_type       = "AL2_x86_64"
     disk_size      = 50
     instance_types = ["t3.medium"]
+    # attach_cluster_primary_security_group = true
+    # vpc_security_group_ids                = [aws_security_group.additional.id]
   }
   eks_managed_node_groups = {
     # Default node group - as provided by AWS EKS
@@ -372,12 +452,27 @@ module "eks-usw2" {
       # Remote access cannot be specified with a launch template
       remote_access = {
         ec2_ssh_key               = var.ec2_key_pair_name
-        source_security_group_ids = [module.sg-usw2[each.key].consul_server_securitygroup_id]
+        source_security_group_ids = [module.sg-consul-dataplane-usw2[each.key].securitygroup_id]
       }
+      min_size     = 1
+      max_size     = 3
+      desired_size = 1
     }
   }
 }
 
+module "hcp_consul_policy-usw2" {
+
+  providers = {
+    aws    = aws.usw2
+    consul = consul.usw2-consul
+  }
+  source            = "../modules/hcp_consul_policy"
+  for_each          = toset(local.ec2_service_list_usw2)
+  consul_datacenter = module.hcp_consul_usw2[local.hvn_list_usw2[0]].datacenter
+  consul_service    = each.key
+
+}
 module "hcp_consul_ec2_client-usw2" {
   providers = {
     aws = aws.usw2
@@ -385,39 +480,83 @@ module "hcp_consul_ec2_client-usw2" {
   source   = "../modules/hcp_consul_ec2_client"
   for_each = local.ec2_map_usw2
 
-  hostname          = local.ec2_map_usw2[each.key].hostname
-  ec2_key_pair_name = local.ec2_map_usw2[each.key].ec2_ssh_key
-  #region                      = local.usw2[each.value.vpc_env].region
+  hostname                    = local.ec2_map_usw2[each.key].hostname
+  ec2_key_pair_name           = local.ec2_map_usw2[each.key].ec2_ssh_key
   vpc_id                      = module.vpc-usw2[each.value.vpc_env].vpc_id
   prefix                      = var.prefix
   associate_public_ip_address = each.value.associate_public_ip_address
   subnet_id                   = each.value.target_subnets == "public_subnets" ? module.vpc-usw2[each.value.vpc_env].public_subnets[0] : module.vpc-usw2[each.value.vpc_env].private_subnets[0]
-  security_group_ids          = [module.sg-usw2[each.value.vpc_env].consul_server_securitygroup_id]
+  security_group_ids          = [module.sg-consul-agents-usw2[each.value.vpc_env].securitygroup_id]
+  consul_service              = local.ec2_map_usw2[each.key].service
+  consul_acl_token_secret_id  = module.hcp_consul_policy-usw2[local.ec2_map_usw2[each.key].service].consul_service_api_token
   consul_datacenter           = module.hcp_consul_usw2[local.hvn_list_usw2[0]].datacenter
   consul_public_endpoint_url  = module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_public_endpoint_url
-
   consul_ca_file              = module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_ca_file
   consul_config_file          = module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_config_file
   consul_root_token_secret_id = module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_root_token_secret_id
 }
 
-module "sg-usw2" {
+module "sg-consul-agents-usw2" {
   providers = {
     aws = aws.usw2
   }
-  source   = "../modules/aws_sg_consul_agents"
-  for_each = local.usw2
+  source = "../modules/aws_sg_consul_agents"
+  #for_each              = local.usw2
+  for_each = { for k, v in local.usw2 : k => v if contains(keys(v), "ec2") }
   #region                = local.usw2[each.key].region
   security_group_create = true
-  name_prefix           = "${each.key}-consul-sg"
+  name_prefix           = "${each.key}-consul-agent-sg"
   vpc_id                = module.vpc-usw2[each.key].vpc_id
   #vpc_cidr_block        = local.usw2[each.key].vpc.cidr
   vpc_cidr_blocks     = concat(local.all_routable_cidr_blocks_usw2, [local.usw2[local.hvn_list_usw2[0]].hcp-consul.cidr_block])
   private_cidr_blocks = local.all_routable_cidr_blocks_usw2
 }
 
+module "sg-consul-dataplane-usw2" {
+  providers = {
+    aws = aws.usw2
+  }
+  source                = "../modules/aws_sg_consul_dataplane"
+  for_each              = { for k, v in local.usw2 : k => v if contains(keys(v), "eks") }
+  security_group_create = true
+  #security_group_id     = "sg-0251e75cdd18afb13"
+  name_prefix           = "${each.key}-consul-dataplane-sg"  #eks-cluster-sg-${prefix}-${each.key}
+  vpc_id                = module.vpc-usw2[each.key].vpc_id
+  #vpc_cidr_block        = local.usw2[each.key].vpc.cidr
+  vpc_cidr_blocks     = concat(local.all_routable_cidr_blocks_usw2, [local.usw2[local.hvn_list_usw2[0]].hcp-consul.cidr_block])
+  private_cidr_blocks = local.all_routable_cidr_blocks_usw2
+}
+
+data "template_file" "eks_clients_usw2" {
+  for_each = { for k, v in local.usw2 : k => v if contains(keys(v), "eks") }
+
+  template = file("${path.module}/templates/consul_helm_client.tmpl")
+  vars = {
+    region_shortname            = "usw2"
+    cluster_name                = try(local.usw2[each.key].eks.cluster_name, local.name)
+    datacenter                  = module.hcp_consul_usw2[local.hvn_list_usw2[0]].datacenter
+    release_name                = "consul-${each.key}"
+    consul_external_servers     = jsondecode(base64decode(module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_config_file)).retry_join[0]
+    consul_version              = "1.14.4-ent"
+    consul_helm_chart_version   = "1.0.2"
+    consul_helm_chart_template  = "values-client-agentless-mesh.yaml"
+    consul_chart_name           = "consul"
+    consul_ca_file              = module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_ca_file
+    consul_config_file          = module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_config_file
+    consul_root_token_secret_id = module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_root_token_secret_id
+    #partition                     = "${element(var.regions, count.index)}-shared"
+    partition = "default"
+  }
+}
+
+resource "local_file" "usw2" {
+  for_each = { for k, v in local.usw2 : k => v if contains(keys(v), "eks") }
+  content  = data.template_file.eks_clients_usw2[each.key].rendered
+  filename = "${path.module}/../consul-clients/auto-${local.usw2[each.key].eks.cluster_name}.tf"
+}
+
 output "usw2_regions" {
-  value = { for k, v in local.usw2 : k => data.aws_region.current.name }
+  value = { for k, v in local.usw2 : k => data.aws_region.usw2.name }
 }
 # output "usw2_regions" {
 #   value = { for k, v in local.usw2 : k => local.usw2[k].region }
@@ -437,7 +576,7 @@ output "usw2_eks_cluster_endpoints" {
 }
 output "usw2_eks_cluster_names" {
   description = "The name/id of the EKS cluster. Will block on cluster creation until the cluster is really ready"
-  value       = { for k, v in local.usw2 : k => module.eks-usw2[k].cluster_name if contains(keys(v), "eks") }
+  value       = { for k, v in local.usw2 : k => local.usw2[k].eks.cluster_name if contains(keys(v), "eks") }
 }
 ### Transit Gateway
 output "usw2_ec2_transit_gateway_arn" {
@@ -460,19 +599,24 @@ output "usw2_vpc-tgw-cidr_routes_added" {
 output "usw2_ec2_ip" {
   value = { for k, v in local.ec2_map_usw2 : k => module.hcp_consul_ec2_client-usw2[k].ec2_ip }
 }
-output "consul_config_file" {
+output "usw2_consul_config_file" {
   value = module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_config_file
 }
-output "consul_ca_file" {
+output "usw2_consul_ca_file" {
   value = module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_ca_file
 }
-output "consul_private_endpoint_url" {
+output "usw2_consul_private_endpoint_url" {
   value = module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_private_endpoint_url
 }
-output "consul_root_token_secret_id" {
+output "usw2_consul_root_token_secret_id" {
   value = module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_root_token_secret_id
 }
-
-output "retry_join" {
-  value = local.consul_retry_join
+output "usw2_consul_service_api_token" {
+  value = [for svc in local.ec2_service_list_usw2 : module.hcp_consul_policy-usw2[svc].consul_service_api_token]
+}
+output "usw2_retry_join" {
+  value = jsondecode(base64decode(module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_config_file)).retry_join[0]
+}
+output "usw2_consul_public_endpoint_url" {
+  value = module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_public_endpoint_url
 }

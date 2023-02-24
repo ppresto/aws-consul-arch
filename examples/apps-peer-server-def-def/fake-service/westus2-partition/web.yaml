@@ -33,10 +33,9 @@ spec:
         service: fake-service
       annotations:
         consul.hashicorp.com/connect-inject: 'true'
-        consul.hashicorp.com/transparent-proxy: 'true'
+        consul.hashicorp.com/transparent-proxy: 'false'
         #consul.hashicorp.com/connect-service-upstreams: 'api.svc.default.ns.consul0-eastus.peer:9091'
-        #consul.hashicorp.com/connect-service-upstreams: 'api:9091'
-        consul.hashicorp.com/connect-service-upstreams: 'api.virtual.default.ns.team2.partition.consul'
+        consul.hashicorp.com/connect-service-upstreams: 'api:9091'
     spec:
       serviceAccountName: web
       containers:
