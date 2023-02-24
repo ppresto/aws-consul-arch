@@ -181,7 +181,8 @@ https://www.consul.io/docs/discovery/dns#dns-with-acls
 ### Consul - DNS lookups on EKS
 Test coredns, start busybox, and use nslookup
 
-```consuldnsIP=$(kubectl -n consul get svc consul-dns -o json | jq -r '.spec.clusterIP')
+```
+consuldnsIP=$(kubectl -n consul get svc consul-dns -o json | jq -r '.spec.clusterIP')
 corednsIP=$(kubectl -n kube-system get svc kube-dns -o json | jq -r '.spec.clusterIP')
 kubectl run busybox --restart=Never --image=busybox:1.28 -- sleep 3600
 kubectl exec busybox -- nslookup kubernetes $corednsIP
@@ -193,6 +194,8 @@ kubectl exec busybox -- nslookup consul.service.consul
 kubectl exec busybox -- nslookup api.service.az1.ns.default.ap.aks1-westus2.dc.consul
 kubectl exec busybox -- nslookup api.virtual.az1.ns.default.ap.aks1-westus2.dc.consul
 ```
+Additional Info:
+https://aws.amazon.com/premiumsupport/knowledge-center/eks-dns-failure/
 ### Consul - DNS Forwarding
 Once DNS lookups are working through the local consul client,  setup DNS forwarding to port 53 to work for all requests by default.
 https://learn.hashicorp.com/tutorials/consul/dns-forwarding
