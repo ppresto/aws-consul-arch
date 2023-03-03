@@ -1,0 +1,22 @@
+#provider "azurerm" {
+#  features {}
+#}
+
+module "consul_presto-usw2-app1" {
+  source   = "../modules/helm_install_consul_dataplane"
+  release_name  = "consul-usw2-app1"
+  chart_name         = "consul"
+  cluster_name         = "presto-usw2-app1"
+  datacenter           = "presto-cluster-usw2"
+  consul_partition     = "default"
+  server_replicas      = 3
+  consul_version       = "1.14.4-ent"
+  consul_license       = file("../files/consul.lic")
+  consul_helm_chart_template = "values-client-agentless-mesh.yaml"
+  consul_helm_chart_version  = "1.0.2"
+  consul_external_servers    = "presto-cluster-usw2.private.consul.328306de-41b8-43a7-9c38-ca8d89d06b07.aws.hashicorp.cloud" #HCP private endpoint address
+  consul_ca_file             = ""
+  consul_config_file             = ""
+  consul_root_token_secret_id = ""
+  }
+
