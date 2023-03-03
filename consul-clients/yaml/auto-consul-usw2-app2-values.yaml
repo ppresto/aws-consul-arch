@@ -10,7 +10,7 @@ global:
   enableConsulNamespaces: true
   adminPartitions:
     enabled: true
-    name: team2
+    name: default
   peering:
     enabled: true
   acls:
@@ -31,7 +31,7 @@ global:
 
 externalServers:
   enabled: true
-  hosts: ["presto-cluster-usw2.consul.328306de-41b8-43a7-9c38-ca8d89d06b07.aws.hashicorp.cloud"]
+  hosts: ["presto-cluster-usw2.private.consul.328306de-41b8-43a7-9c38-ca8d89d06b07.aws.hashicorp.cloud"]
   #tlsServerName: "server.presto-cluster-usw2.consul"
   httpsPort: 443
   grpcPort: 8502
@@ -43,7 +43,7 @@ server:
 
 connectInject:
   transparentProxy:
-    defaultEnabled: false
+    defaultEnabled: true
   enabled: true
   default: false
   consulNode:
@@ -64,13 +64,13 @@ meshGateway:
     #   service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
     #   service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
 
-# ingressGateways:
-#   enabled: true
-#   defaults:
-#     replicas: 1
-#   gateways:
-#     - name: ingress-gateway
-#       service:
-#         type: LoadBalancer
-#         # annotations: |
-#         #   service.beta.kubernetes.io/aws-load-balancer-type: external
+ingressGateways:
+  enabled: true
+  defaults:
+    replicas: 1
+  gateways:
+    - name: ingress-gateway
+      service:
+        type: LoadBalancer
+        # annotations: |
+        #   service.beta.kubernetes.io/aws-load-balancer-type: external

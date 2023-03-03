@@ -7,9 +7,9 @@ spec:
   destination:
     name: api
   sources:
-  - name: web
-    partition: team2
-    action: allow
+  # - name: web
+  #   partition: team2
+  #   action: allow
   - name: web
     partition: default
     action: allow

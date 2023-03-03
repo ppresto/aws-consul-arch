@@ -1,8 +1,8 @@
 global:
   enabled: false
   logLevel: "debug"
-  name: presto-use1-app1
-  datacenter: presto-cluster-use1
+  name: presto-usw2-app1
+  datacenter: presto-cluster-usw2
   image: "hashicorp/consul-enterprise:1.14.4-ent"
   imageK8S: docker.mirror.hashicorp.services/hashicorp/consul-k8s-control-plane:1.0.2
   imageConsulDataplane: "hashicorp/consul-dataplane:1.0.0"
@@ -31,16 +31,18 @@ global:
 
 externalServers:
   enabled: true
-  hosts: ["presto-cluster-use1.private.consul.328306de-41b8-43a7-9c38-ca8d89d06b07.aws.hashicorp.cloud"]
-  #tlsServerName: "server.presto-cluster-use1.consul"
+  hosts: ["presto-cluster-usw2.private.consul.328306de-41b8-43a7-9c38-ca8d89d06b07.aws.hashicorp.cloud"]
+  #tlsServerName: "server.presto-cluster-usw2.consul"
   httpsPort: 443
   grpcPort: 8502
   useSystemRoots: true
-  k8sAuthMethodHost: https://02FC71D38DA22E10F4162E8135ED383D.gr7.us-east-1.eks.amazonaws.com
+  k8sAuthMethodHost: https://5BE7F8102DFA3B71003DF68F61E3EF2F.gr7.us-west-2.eks.amazonaws.com
 
 server:
   enabled: false
-
+dns:
+  enabled: true
+  enableRedirection: true
 connectInject:
   transparentProxy:
     defaultEnabled: true
@@ -48,7 +50,7 @@ connectInject:
   default: false
   consulNode:
     meta: 
-      node: "presto-use1-app1-agentless-node"
+      node: "presto-usw2-app1-agentless-node"
 
 #controller:
 #  enabled: true
@@ -59,10 +61,9 @@ meshGateway:
   service:
     enabled: true
     type: LoadBalancer
+    # https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/guide/service/annotations/#lb-type
     # annotations: |
-    #   service.beta.kubernetes.io/aws-load-balancer-type: "external"
-    #   service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
-    #   service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+    #   service.beta.kubernetes.io/aws-load-balancer-type: "nlb-ip"
 
 ingressGateways:
   enabled: true
@@ -73,4 +74,4 @@ ingressGateways:
       service:
         type: LoadBalancer
         # annotations: |
-        #   service.beta.kubernetes.io/aws-load-balancer-type: external
+        #   service.beta.kubernetes.io/aws-load-balancer-type: "nlb-ip"

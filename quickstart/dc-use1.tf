@@ -314,6 +314,7 @@ module "route_add_use1" {
   route_table_id         = module.vpc-use1[each.value.target_vpc].private_route_table_ids[0]
   destination_cidr_block = each.value.cidr
   transit_gateway_id     = module.tgw-use1[each.value.tgw_env].ec2_transit_gateway_id
+  depends_on = [module.tgw_vpc_attach_use1]
 }
 # Create static HVN route with local.use1.use1-shared.hcp-consul.cidr_block
 module "route_add_hcp_use1" {
@@ -325,6 +326,7 @@ module "route_add_hcp_use1" {
   route_table_id         = module.vpc-use1[each.value.vpc_env].private_route_table_ids[0]
   destination_cidr_block = local.hvn_cidrs_map_use1.hvn.cidr
   transit_gateway_id     = module.tgw-use1[each.value.tgw_env].ec2_transit_gateway_id
+  depends_on = [module.aws_hcp_tgw_attach_use1]
 }
 
 # Create EKS cluster per VPC defined in local.use1
@@ -363,27 +365,6 @@ module "eks-use1" {
   #   resources        = ["secrets"]
   # }]
 
-  #   # Extend cluster security group rules
-  # cluster_security_group_additional_rules = {
-  #   ingress_nodes_ephemeral_ports_tcp = {
-  #     description                = "Nodes on ephemeral ports"
-  #     protocol                   = "tcp"
-  #     from_port                  = 1025
-  #     to_port                    = 65535
-  #     type                       = "ingress"
-  #     source_node_security_group = true
-  #   }
-  #   # Test: https://github.com/terraform-aws-modules/terraform-aws-eks/pull/2319
-  #   ingress_source_security_group_id = {
-  #     description              = "Ingress from another computed security group"
-  #     protocol                 = "tcp"
-  #     from_port                = 22
-  #     to_port                  = 22
-  #     type                     = "ingress"
-  #     source_security_group_id = aws_security_group.additional.id
-  #   }
-  # }
-
   # # Extend node-to-node security group rules
   node_security_group_additional_rules = {
     ingress_self_all = {
@@ -420,10 +401,10 @@ module "eks-use1" {
       #launch_template_name   = "default"
 
       # Remote access cannot be specified with a launch template
-      remote_access = {
-        ec2_ssh_key               = var.ec2_key_pair_name
-        source_security_group_ids = [module.sg-consul-dataplane-use1[each.key].securitygroup_id]
-      }
+      # remote_access = {
+      #   ec2_ssh_key               = var.ec2_key_pair_name
+      #   source_security_group_ids = [module.sg-consul-dataplane-use1[each.key].securitygroup_id]
+      # }
       min_size     = 1
       max_size     = 3
       desired_size = 1
@@ -489,10 +470,8 @@ module "sg-consul-dataplane-use1" {
   source                = "../modules/aws_sg_consul_dataplane"
   for_each              = { for k, v in local.use1 : k => v if contains(keys(v), "eks") }
   security_group_create = true
-  #security_group_id     = "sg-0251e75cdd18afb13"
   name_prefix           = "${each.key}-consul-dataplane-sg"  #eks-cluster-sg-${prefix}-${each.key}
   vpc_id                = module.vpc-use1[each.key].vpc_id
-  #vpc_cidr_block        = local.use1[each.key].vpc.cidr
   vpc_cidr_blocks     = concat(local.all_routable_cidr_blocks_use1, [local.use1[local.hvn_list_use1[0]].hcp-consul.cidr_block])
   private_cidr_blocks = local.all_routable_cidr_blocks_use1
 }
@@ -514,7 +493,6 @@ data "template_file" "eks_clients_use1" {
     consul_ca_file              = module.hcp_consul_use1[local.hvn_list_use1[0]].consul_ca_file
     consul_config_file          = module.hcp_consul_use1[local.hvn_list_use1[0]].consul_config_file
     consul_root_token_secret_id = module.hcp_consul_use1[local.hvn_list_use1[0]].consul_root_token_secret_id
-    #partition                     = "${element(var.regions, count.index)}-shared"
     partition = "default"
   }
 }

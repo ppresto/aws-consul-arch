@@ -58,14 +58,14 @@ locals {
         "public_subnets" : ["10.16.11.0/24", "10.16.12.0/24","10.16.13.0/24"],
         "routable_cidr_blocks" : ["10.16.0.0/20"]
       }
-      "eks" = {
-        "cluster_name" : "${var.prefix}-usw2-app1",
-        "cluster_version" : var.eks_cluster_version,
-        "ec2_ssh_key" : var.ec2_key_pair_name,
-        "cluster_endpoint_private_access" : true,
-        "cluster_endpoint_public_access" : true,
-        #"service_ipv4_cidr" : "10.16.16.0/24" #Can't overlap with VPC CIDR
-      }
+      # "eks" = {
+      #   "cluster_name" : "${var.prefix}-usw2-app1",
+      #   "cluster_version" : var.eks_cluster_version,
+      #   "ec2_ssh_key" : var.ec2_key_pair_name,
+      #   "cluster_endpoint_private_access" : true,
+      #   "cluster_endpoint_public_access" : true,
+      #   #"service_ipv4_cidr" : "10.16.16.0/24" #Can't overlap with VPC CIDR
+      # }
       "ec2" = {
         "api01" = {
           "ec2_ssh_key" : var.ec2_key_pair_name

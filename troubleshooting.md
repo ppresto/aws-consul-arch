@@ -255,6 +255,7 @@ helm repo add hashicorp https://helm.releases.hashicorp.com
 helm install team2 hashicorp/consul --namespace consul --version 1.0.2 --set global.image="hashicorp/consul-enterprise:1.14.3-ent" --values ./yaml/test.yaml
 
 # 1.0.2 , consul 1.14.4-ent
+helm install presto-usw2-app2 hashicorp/consul --namespace consul --version 1.0.2 --values ./yaml/auto-consul-usw2-app2-values.yaml
 
 
 ```
@@ -448,8 +449,32 @@ curl -sk --header "X-Consul-Token: ${CONSUL_HTTP_TOKEN}" \
 ```
 
 # Questions
+* What is the best way to lookup a virtual service to verify availability?
+```
+kubectl exec -it deploy/web -- sh
+curl localhost:9090  # works when using localhost
+curl api:9091 # fails without proxy, how can I test upstream virtual lookups?
+```
 * What is the best way to test exported service (from dataplane partition) is available to another dataplane?
 * How long does it take for Consul to see the current health of a svc using the dataplane?  MGW? deletion of Partition?
 * Can the ingress gateway instances run across 2 EKS clusters (dataplane) using default partition?  This creates two eks svcs that each have an LB.  The second LB appears to not work although all instances are successfully registered.
 * Does Consul 1.14 agent on EKS work for service mesh?
+* How do you use the Consul DNS proxy via dataplane?
+```
+consuldnsIP=$(kubectl -n consul get svc consul-dns -o json | jq -r '.spec.clusterIP')
+corednsIP=$(kubectl -n kube-system get svc kube-dns -o json | jq -r '.spec.clusterIP')
+kubectl run busybox --restart=Never --image=busybox:1.28 -- sleep 3600
+kubectl exec busybox -- nslookup kubernetes $corednsIP
+
+Server:    172.20.0.10
+Address 1: 172.20.0.10 kube-dns.kube-system.svc.cluster.local
+Name:      kubernetes
+Address 1: 172.20.0.1 kubernetes.default.svc.cluster.local
+
+kubectl exec busybox -- nslookup consul.service.consul $consuldnsIP
+nslookup: can't resolve 'consul.service.consul'
+Server:    172.20.165.155
+Address 1: 172.20.165.155
+```
+* How do you 
 
