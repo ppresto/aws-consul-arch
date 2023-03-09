@@ -10,9 +10,14 @@ data "aws_caller_identity" "use1" {
   provider = aws.use1
 }
 
+data "aws_iam_policy" "ebscsi-use1" {
+  provider = aws.use1
+  name = "AmazonEBSCSIDriverPolicy"
+}
+
 locals {
   # US-WEST-2 DC Configuration
-    use1 = {
+      use1 = {
     "use1-shared" = {
       "vpc" = {
         "name" : "${var.prefix}-use1-shared"
@@ -358,6 +363,9 @@ module "eks-use1" {
     vpc-cni = {
       resolve_conflicts = "OVERWRITE"
     }
+    aws-ebs-csi-driver = {
+      most_recent = true
+    }
   }
   create_kms_key = true
   # cluster_encryption_config = [{
@@ -366,8 +374,28 @@ module "eks-use1" {
   # }]
 
   # # Extend node-to-node security group rules
+
+  cluster_security_group_additional_rules = {
+      "${local.use1[each.key].eks.cluster_name}_ingress_self_all" = {
+      description = "Cluster all ports/protocols"
+      protocol    = "-1"
+      from_port   = 0
+      to_port     = 0
+      type        = "ingress"
+      self        = true
+    }
+    # Test: https://github.com/terraform-aws-modules/terraform-aws-eks/pull/2319
+    "${local.use1[each.key].eks.cluster_name}_ingress_routable_cidrs" = {
+      description              = "Ingress from cluster routable networks"
+      protocol                 = "tcp"
+      from_port                = 0
+      to_port                  = 0
+      type                     = "ingress"
+      cidr_blocks              = concat(local.all_routable_cidr_blocks_use1, [local.use1[local.hvn_list_use1[0]].hcp-consul.cidr_block])
+    }
+  }
   node_security_group_additional_rules = {
-    ingress_self_all = {
+    "${local.use1[each.key].eks.cluster_name}_ingress_self_all" = {
       description = "Node to node all ports/protocols"
       protocol    = "-1"
       from_port   = 0
@@ -376,7 +404,7 @@ module "eks-use1" {
       self        = true
     }
     # Test: https://github.com/terraform-aws-modules/terraform-aws-eks/pull/2319
-    ingress_source_security_group_id = {
+    "${local.use1[each.key].eks.cluster_name}_ingress_routable_cidrs" = {
       description              = "Ingress from routable networks"
       protocol                 = "tcp"
       from_port                = 0
@@ -391,13 +419,17 @@ module "eks-use1" {
     instance_types = ["t3.medium"]
     # attach_cluster_primary_security_group = true
     # vpc_security_group_ids                = [aws_security_group.additional.id]
+    iam_role_additional_policies = {
+      additional = data.aws_iam_policy.ebscsi-use1.arn
+    }
   }
   eks_managed_node_groups = {
     # Default node group - as provided by AWS EKS
     default_node_group = {
       # By default, the module creates a launch template to ensure tags are propagated to instances, etc.,
       # so we need to disable it to use the default template provided by the AWS EKS managed node group service
-      use_custom_launch_template = false
+      
+      #use_custom_launch_template = false
       #launch_template_name   = "default"
 
       # Remote access cannot be specified with a launch template
@@ -405,9 +437,9 @@ module "eks-use1" {
       #   ec2_ssh_key               = var.ec2_key_pair_name
       #   source_security_group_ids = [module.sg-consul-dataplane-use1[each.key].securitygroup_id]
       # }
-      min_size     = 1
-      max_size     = 3
-      desired_size = 1
+      min_size     = try(local.use1[each.key].eks.eks_min_size, var.eks_min_size)
+      max_size     = try(local.use1[each.key].eks.eks_max_size, var.eks_max_size)
+      desired_size = try(local.use1[each.key].eks.eks_desired_size, var.eks_desired_size)
     }
   }
 }
@@ -486,14 +518,14 @@ data "template_file" "eks_clients_use1" {
     datacenter                  = module.hcp_consul_use1[local.hvn_list_use1[0]].datacenter
     release_name                = "consul-${each.key}"
     consul_external_servers     = jsondecode(base64decode(module.hcp_consul_use1[local.hvn_list_use1[0]].consul_config_file)).retry_join[0]
-    consul_version              = "1.14.4-ent"
-    consul_helm_chart_version   = "1.0.2"
-    consul_helm_chart_template  = "values-client-agentless-mesh.yaml"
+    consul_version              = var.consul_version
+    consul_helm_chart_version   = var.consul_helm_chart_version
+    consul_helm_chart_template  = var.consul_helm_chart_template
     consul_chart_name           = "consul"
     consul_ca_file              = module.hcp_consul_use1[local.hvn_list_use1[0]].consul_ca_file
     consul_config_file          = module.hcp_consul_use1[local.hvn_list_use1[0]].consul_config_file
     consul_root_token_secret_id = module.hcp_consul_use1[local.hvn_list_use1[0]].consul_root_token_secret_id
-    partition = "default"
+    partition = var.consul_partition
   }
 }
 

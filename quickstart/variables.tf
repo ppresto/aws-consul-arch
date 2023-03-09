@@ -37,6 +37,27 @@ variable "min_consul_version" {
   type        = string
   default     = "1.14.4"
 }
+variable "consul_version" {
+  description = "Consul Version - Agents"
+  type        = string
+  default     = "1.13.6-ent"
+}
+variable "consul_helm_chart_version" {
+  description = "Minimum version of HCP Consul"
+  type        = string
+  default     = "1.0.2"
+}
+variable "consul_helm_chart_template" {
+  description = "Minimum version of HCP Consul"
+  type        = string
+  default     = "values-client-agentless-mesh.yaml"
+}
+variable "consul_partition" {
+  description = "Minimum version of HCP Consul"
+  type        = string
+  default     = "default"
+}
+
 variable "cloud_provider" {
   description = "The cloud provider of the HCP HVN and Consul cluster."
   type        = string
@@ -52,7 +73,22 @@ variable "ec2_key_pair_name" {
 variable "eks_cluster_version" {
   description = "EKS version"
   type        = string
-  default     = "1.24"
+  default     = "1.23"
+}
+variable "eks_min_size" {
+  description = "EKS version"
+  type        = string
+  default     = 1
+}
+variable "eks_max_size" {
+  description = "EKS version"
+  type        = string
+  default     = 3
+}
+variable "eks_desired_size" {
+  description = "EKS version"
+  type        = string
+  default     = 1
 }
 
 #HCP routable cidr list

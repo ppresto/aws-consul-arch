@@ -22,6 +22,7 @@
     - [EKS - Login / Set Context](#eks---login--set-context)
     - [EKS - Helm Install manually to debug](#eks---helm-install-manually-to-debug)
     - [EKS - Uninstall Helm chart](#eks---uninstall-helm-chart)
+    - [EKS - Helm install AWS LB Controller](#eks---helm-install-aws-lb-controller)
     - [EKS - Test pod connectivity to Consul](#eks---test-pod-connectivity-to-consul)
     - [EKS - DNS Troubleshooting](#eks---dns-troubleshooting)
     - [EKS - Change proxy global defaults](#eks---change-proxy-global-defaults)
@@ -255,7 +256,7 @@ helm repo add hashicorp https://helm.releases.hashicorp.com
 helm install team2 hashicorp/consul --namespace consul --version 1.0.2 --set global.image="hashicorp/consul-enterprise:1.14.3-ent" --values ./yaml/test.yaml
 
 # 1.0.2 , consul 1.14.4-ent
-helm install presto-usw2-app2 hashicorp/consul --namespace consul --version 1.0.2 --values ./yaml/auto-consul-usw2-app2-values.yaml
+helm install consul-usw2-app1 hashicorp/consul --namespace consul --version 1.0.2 --values ./yaml/auto-consul-usw2-app2-values.yaml
 
 
 ```
@@ -270,6 +271,16 @@ The Helm release name must be unique for each Kubernetes cluster. The Helm chart
 
 [Uninstall Consul / Helm](https://www.consul.io/docs/k8s/operations/uninstall)
 
+### EKS - Helm install AWS LB Controller
+```
+helm repo add eks https://aws.github.io/eks-charts
+helm repo update
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+  -n kube-system \
+  --set clusterName=presto-usw2-app1 \
+  --set serviceAccount.create=false \
+  --set serviceAccount.name=aws-load-balancer-controller
+```
 ### EKS - Test pod connectivity to Consul
 
 Run multitool and exec into it

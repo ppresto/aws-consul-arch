@@ -21,12 +21,13 @@ data "aws_ec2_transit_gateway_peering_attachment" "example_accepter_peering_data
     name   = "transit-gateway-id"
     values = [module.tgw-use1[local.tgw_list_use1[0]].ec2_transit_gateway_id]
   }
-  depends_on = [module.tgw-use1, aws_ec2_transit_gateway_peering_attachment.example_source_peering]
+  depends_on = [aws_ec2_transit_gateway_peering_attachment.example_source_peering]
 }
 
 # Accept the Attachment Peering request.
 resource "aws_ec2_transit_gateway_peering_attachment_accepter" "example_accepter" {
   transit_gateway_attachment_id = data.aws_ec2_transit_gateway_peering_attachment.example_accepter_peering_data.id
+  #transit_gateway_attachment_id = aws_ec2_transit_gateway_peering_attachment.example_source_peering.id
   tags = {
     Name = "terraform-example-tgw-peering-accepter"
     Side = "Acceptor"

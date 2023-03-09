@@ -1,7 +1,7 @@
 global:
   enabled: false
   logLevel: "debug"
-  name: presto-usw2-app2
+  name: presto-usw2-app1
   datacenter: presto-cluster-usw2
   image: "hashicorp/consul-enterprise:1.14.4-ent"
   imageK8S: docker.mirror.hashicorp.services/hashicorp/consul-k8s-control-plane:1.0.2
@@ -36,7 +36,7 @@ externalServers:
   httpsPort: 443
   grpcPort: 8502
   useSystemRoots: true
-  k8sAuthMethodHost: https://0AB7DA9625868B4F715AA244C2286347.gr7.us-west-2.eks.amazonaws.com
+  k8sAuthMethodHost: https://39EF5D0D82908BED6C545C631AABF16C.gr7.us-west-2.eks.amazonaws.com
 
 server:
   enabled: false
@@ -48,7 +48,7 @@ connectInject:
   default: false
   consulNode:
     meta: 
-      node: "presto-usw2-app2-agentless-node"
+      node: "presto-usw2-app1-agentless-node"
 
 #controller:
 #  enabled: true
@@ -59,10 +59,9 @@ meshGateway:
   service:
     enabled: true
     type: LoadBalancer
+    # https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/guide/service/annotations/#lb-type
     # annotations: |
-    #   service.beta.kubernetes.io/aws-load-balancer-type: "external"
-    #   service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
-    #   service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+    #   service.beta.kubernetes.io/aws-load-balancer-type: "nlb-ip"
 
 ingressGateways:
   enabled: true
@@ -72,5 +71,3 @@ ingressGateways:
     - name: ingress-gateway
       service:
         type: LoadBalancer
-        # annotations: |
-        #   service.beta.kubernetes.io/aws-load-balancer-type: external
