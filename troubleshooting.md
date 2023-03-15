@@ -29,16 +29,17 @@
     - [EKS - Terminate stuck namespace](#eks---terminate-stuck-namespace)
     - [EKS - Terminate stuck objects](#eks---terminate-stuck-objects)
   - [Envoy](#envoy)
+    - [Envoy - Change logging level](#envoy---change-logging-level)
     - [Envoy - Read fake-service envoy-sidcar configuration](#envoy---read-fake-service-envoy-sidcar-configuration)
+    - [Consul - Mesh GW](#consul---mesh-gw)
     - [Consul - Ingress GW](#consul---ingress-gw)
   - [Partitions](#partitions)
-- [Questions](#questions)
 
 <!-- /TOC -->
 # Troubleshooting
 
 ## Transit Gateway
-* VPCs need unique IP ranges unless using a mesh gateway
+* VPCs need unique IP ranges unless using a mesh gateways across consul data centers.
 * Review VPC Route Table and ensure the TGW is set as a target to all Destinations that need access to HCP
 * [AWS TGW Troubleshooting Guide](https://aws.amazon.com/premiumsupport/knowledge-center/transit-gateway-fix-vpc-connection/)
 * [Hashicorp TGW UI Setup Video](https://youtu.be/tw7FK_uUwqI?t=527
@@ -397,6 +398,18 @@ kubectl patch proxydefaults.consul.hashicorp.com global -n default --type merge 
 ## Envoy
 [Verify Envoy compatability](https://www.consul.io/docs/connect/proxies/envoy) for your platform and consul version.
 
+### Envoy - Change logging level
+
+Change mesh gateway logging level to Trace
+```
+kubectl port-forward mesh-gateway-pod-name 19000:19000
+curl -X POST http://localhost:19000/logging?level=trace
+```
+
+Output mgw logs and new entries will show trace level
+```
+kubectl logs mesh-gateway-pod-name > mgw.trace.log
+```
 ### Envoy - Read fake-service envoy-sidcar configuration
 kubectl exec deploy/web -c envoy-sidecar -- wget -qO- localhost:19000/clusters
 kubectl exec deploy/api-deployment-v2 -c envoy-sidecar -- wget -qO- localhost:19000/clusters
@@ -436,9 +449,18 @@ Next test the web app container can use the virtual lookup to connect to the api
 kubectl -n web exec deploy/web -c web -- wget -qO- http://api.virtual.api.ns.default.ap.usw2.dc.consul
 ```
 
+### Consul - Mesh GW
+Connect to mesh gateway by attaching a debug container to the pod
+```
+kc debug presto-usw2-app1-mesh-gateway-6b48fd8cb9-fmq5w -it --image alpine
+apk add openssl
+openssl s_client -showcerts -connect 10.15.2.155:8443
+```
+Add openssl package to verify an https endpoint
+
 ### Consul - Ingress GW
 ```
-kubectl -n consul exec deploy/team1-ingress-gateway -c ingress-gateway -- wget -qO- 127.0.0.1:19000/clusters
+kubectl -n consul exec deploy/team1-ingress-gateway -c ingress-gateway -- wget -qO- 127.0.0.1:19000/clusters?format=json
 
 kubectl -n consul exec deploy/team1-ingress-gateway -c ingress-gateway -- wget -qO- http://localhost:19000/config_dump
 
@@ -451,41 +473,15 @@ kubectl -n consul exec -it deploy/team1-ingress-gateway -c ingress-gateway -- wg
 
 ## Partitions
 
+Consul CLI to generate peering token
 ```
 consul peering generate-token -partition=eastus-shared -name=consul1-westus2 -server-external-addresses=1.2.3.4:8502 -token "${CONSUL_HTTP_TOKEN}"
+```
+
+Consul CLI to delete peeering
+```
 consul peering delete -name=presto-cluster-usw2 -partition=test -token "${CONSUL_HTTP_TOKEN}"
 
 curl -sk --header "X-Consul-Token: ${CONSUL_HTTP_TOKEN}" \
 --request DELETE ${CONSUL_HTTP_ADDR}/v1/peering/presto-cluster-usw2
 ```
-
-# Questions
-* What is the best way to lookup a virtual service to verify availability?
-```
-kubectl exec -it deploy/web -- sh
-curl localhost:9090  # works when using localhost
-curl api:9091 # fails without proxy, how can I test upstream virtual lookups?
-```
-* What is the best way to test exported service (from dataplane partition) is available to another dataplane?
-* How long does it take for Consul to see the current health of a svc using the dataplane?  MGW? deletion of Partition?
-* Can the ingress gateway instances run across 2 EKS clusters (dataplane) using default partition?  This creates two eks svcs that each have an LB.  The second LB appears to not work although all instances are successfully registered.
-* Does Consul 1.14 agent on EKS work for service mesh?
-* How do you use the Consul DNS proxy via dataplane?
-```
-consuldnsIP=$(kubectl -n consul get svc consul-dns -o json | jq -r '.spec.clusterIP')
-corednsIP=$(kubectl -n kube-system get svc kube-dns -o json | jq -r '.spec.clusterIP')
-kubectl run busybox --restart=Never --image=busybox:1.28 -- sleep 3600
-kubectl exec busybox -- nslookup kubernetes $corednsIP
-
-Server:    172.20.0.10
-Address 1: 172.20.0.10 kube-dns.kube-system.svc.cluster.local
-Name:      kubernetes
-Address 1: 172.20.0.1 kubernetes.default.svc.cluster.local
-
-kubectl exec busybox -- nslookup consul.service.consul $consuldnsIP
-nslookup: can't resolve 'consul.service.consul'
-Server:    172.20.165.155
-Address 1: 172.20.165.155
-```
-* How do you 
-

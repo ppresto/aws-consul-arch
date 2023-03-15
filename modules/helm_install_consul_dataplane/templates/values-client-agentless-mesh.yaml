@@ -42,6 +42,9 @@ server:
   enabled: false
 
 connectInject:
+  consulNamespaces:
+    consulDestinationNamespace: "default"   # Ignored when mirroringK8S is true
+    mirroringK8S: true
   transparentProxy:
     defaultEnabled: true
   enabled: true

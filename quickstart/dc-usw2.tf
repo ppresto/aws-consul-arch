@@ -40,7 +40,7 @@ locals {
         #"region"             = "us-west-2"
         "cidr_block"         = "172.25.34.0/23"
         "cluster_id"         = "${var.prefix}-cluster-usw2"
-        "tier"               = "development"
+        "tier"               = "plus"
         "min_consul_version" = var.min_consul_version
         "public_endpoint"    = true
         #"hvn_private_route_cidr_list" : ["10.0.0.0/10"] # Default uses [local.all_routable_cidr_blocks_usw2]
@@ -85,28 +85,28 @@ locals {
         }
       }
     }
-    "usw2-app2" = {
-      #"name" : "usw2-app1",
-      #"region" : "us-west-2",
-      "vpc" = {
-        "name" : "${var.prefix}-usw2-app2"
-        "cidr" : "10.17.0.0/20",
-        "private_subnets" : ["10.17.1.0/24", "10.17.2.0/24", "10.17.3.0/24"],
-        "public_subnets" : ["10.17.11.0/24", "10.17.12.0/24"],
-        "routable_cidr_blocks" : ["10.17.0.0/20"]
-      }
-      "eks" = {
-        "cluster_name" : "${var.prefix}-usw2-app2",
-        "cluster_version" : var.eks_cluster_version,
-        "ec2_ssh_key" : var.ec2_key_pair_name,
-        "cluster_endpoint_private_access" : true,
-        "cluster_endpoint_public_access" : true,
-        "eks_min_size" : 1,
-        "eks_max_size" : 3,
-        "eks_desired_size" : 1
-        #"service_ipv4_cidr" : "10.16.16.0/24" #Can't overlap with VPC CIDR
-      }
-    }
+    # "usw2-app2" = {
+    #   #"name" : "usw2-app1",
+    #   #"region" : "us-west-2",
+    #   "vpc" = {
+    #     "name" : "${var.prefix}-usw2-app2"
+    #     "cidr" : "10.17.0.0/20",
+    #     "private_subnets" : ["10.17.1.0/24", "10.17.2.0/24", "10.17.3.0/24"],
+    #     "public_subnets" : ["10.17.11.0/24", "10.17.12.0/24"],
+    #     "routable_cidr_blocks" : ["10.17.0.0/20"]
+    #   }
+    #   "eks" = {
+    #     "cluster_name" : "${var.prefix}-usw2-app2",
+    #     "cluster_version" : var.eks_cluster_version,
+    #     "ec2_ssh_key" : var.ec2_key_pair_name,
+    #     "cluster_endpoint_private_access" : true,
+    #     "cluster_endpoint_public_access" : true,
+    #     "eks_min_size" : 1,
+    #     "eks_max_size" : 3,
+    #     "eks_desired_size" : 1
+    #     #"service_ipv4_cidr" : "10.16.16.0/24" #Can't overlap with VPC CIDR
+    #   }
+    # }
   }
   # HCP Runtime
   # consul_config_file_json_usw2 = jsondecode(base64decode(module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_config_file))
@@ -410,17 +410,17 @@ module "eks-usw2" {
   # }]
 
   # # Extend node-to-node security group rules
-
   cluster_security_group_additional_rules = {
-      "${local.usw2[each.key].eks.cluster_name}_ingress_self_all" = {
-      description = "Cluster all ports/protocols"
-      protocol    = "-1"
-      from_port   = 0
-      to_port     = 0
-      type        = "ingress"
-      self        = true
-    }
-    # Test: https://github.com/terraform-aws-modules/terraform-aws-eks/pull/2319
+    # Might be duplicate with default allow ALL egress rule.
+    # "${local.usw2[each.key].eks.cluster_name}_egress_nodes_ephemeral_ports_tcp" = {
+    #   description                = "To node 1025-65535"
+    #   protocol                   = "tcp"
+    #   from_port                  = 1025
+    #   to_port                    = 65535
+    #   type                       = "egress"
+    #   source_node_security_group = true
+    # }
+    # Allow other Internally routable CIDRs ingress access to cluster
     "${local.usw2[each.key].eks.cluster_name}_ingress_routable_cidrs" = {
       description              = "Ingress from cluster routable networks"
       protocol                 = "tcp"
@@ -439,16 +439,70 @@ module "eks-usw2" {
       type        = "ingress"
       self        = true
     }
-    # Test: https://github.com/terraform-aws-modules/terraform-aws-eks/pull/2319
-    "${local.usw2[each.key].eks.cluster_name}_ingress_routable_cidrs" = {
-      description              = "Ingress from routable networks"
-      protocol                 = "tcp"
-      from_port                = 0
-      to_port                  = 0
-      type                     = "ingress"
-      cidr_blocks              = concat(local.all_routable_cidr_blocks_usw2, [local.usw2[local.hvn_list_usw2[0]].hcp-consul.cidr_block])
+    "${local.usw2[each.key].eks.cluster_name}_ingress_cluster_all" = {
+      description                   = "Cluster to node all ports/protocols"
+      protocol                      = "-1"
+      from_port                     = 0
+      to_port                       = 0
+      type                          = "ingress"
+      source_cluster_security_group = true
     }
+    # "${local.usw2[each.key].eks.cluster_name}_ingress_routable_cidrs" = {
+    #   description              = "Ingress from routable networks"
+    #   protocol                 = "tcp"
+    #   from_port                = 0
+    #   to_port                  = 0
+    #   type                     = "ingress"
+    #   cidr_blocks              = concat(local.all_routable_cidr_blocks_usw2, [local.usw2[local.hvn_list_usw2[0]].hcp-consul.cidr_block])
+    # }
+    # "${local.usw2[each.key].eks.cluster_name}_egress_all" = {
+    #   description      = "Node all egress"
+    #   protocol         = "-1"
+    #   from_port        = 0
+    #   to_port          = 0
+    #   type             = "egress"
+    #   cidr_blocks      = ["0.0.0.0/0"]
+    #   ipv6_cidr_blocks = ["::/0"]
+    # }
   }
+  # cluster_security_group_additional_rules = {
+  #     "${local.usw2[each.key].eks.cluster_name}_ingress_self_all" = {
+  #     description = "Cluster all ports/protocols"
+  #     protocol    = "-1"
+  #     from_port   = 0
+  #     to_port     = 0
+  #     type        = "ingress"
+  #     self        = true
+  #   }
+  #   # Test: https://github.com/terraform-aws-modules/terraform-aws-eks/pull/2319
+  #   "${local.usw2[each.key].eks.cluster_name}_ingress_routable_cidrs" = {
+  #     description              = "Ingress from cluster routable networks"
+  #     protocol                 = "tcp"
+  #     from_port                = 0
+  #     to_port                  = 0
+  #     type                     = "ingress"
+  #     cidr_blocks              = concat(local.all_routable_cidr_blocks_usw2, [local.usw2[local.hvn_list_usw2[0]].hcp-consul.cidr_block])
+  #   }
+  # }
+  # node_security_group_additional_rules = {
+  #   "${local.usw2[each.key].eks.cluster_name}_ingress_self_all" = {
+  #     description = "Node to node all ports/protocols"
+  #     protocol    = "-1"
+  #     from_port   = 0
+  #     to_port     = 0
+  #     type        = "ingress"
+  #     self        = true
+  #   }
+  #   # Test: https://github.com/terraform-aws-modules/terraform-aws-eks/pull/2319
+  #   "${local.usw2[each.key].eks.cluster_name}_ingress_routable_cidrs" = {
+  #     description              = "Ingress from routable networks"
+  #     protocol                 = "tcp"
+  #     from_port                = 0
+  #     to_port                  = 0
+  #     type                     = "ingress"
+  #     cidr_blocks              = concat(local.all_routable_cidr_blocks_usw2, [local.usw2[local.hvn_list_usw2[0]].hcp-consul.cidr_block])
+  #   }
+  # }
   eks_managed_node_group_defaults = {
     ami_type       = "AL2_x86_64"
     disk_size      = 50
@@ -464,7 +518,7 @@ module "eks-usw2" {
     default_node_group = {
       # By default, the module creates a launch template to ensure tags are propagated to instances, etc.,
       # so we need to disable it to use the default template provided by the AWS EKS managed node group service
-      
+
       #use_custom_launch_template = false
       #launch_template_name   = "default"
 

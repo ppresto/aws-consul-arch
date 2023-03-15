@@ -392,9 +392,12 @@ module "eks-usw2" {
     #coredns = {
     #  resolve_conflicts = "OVERWRITE"
     #}
-    kube-proxy = {}
+    # 
+    kube-proxy = {
+      most_recent = true
+    }
     vpc-cni = {
-      resolve_conflicts = "OVERWRITE"
+      most_recent = true
     }
     aws-ebs-csi-driver = {
       most_recent = true

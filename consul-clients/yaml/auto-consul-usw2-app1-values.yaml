@@ -36,12 +36,15 @@ externalServers:
   httpsPort: 443
   grpcPort: 8502
   useSystemRoots: true
-  k8sAuthMethodHost: https://39EF5D0D82908BED6C545C631AABF16C.gr7.us-west-2.eks.amazonaws.com
+  k8sAuthMethodHost: https://F486B560A1B3F353D941B1F30B586FD4.gr7.us-west-2.eks.amazonaws.com
 
 server:
   enabled: false
 
 connectInject:
+  consulNamespaces:
+    consulDestinationNamespace: "default"   # Ignored when mirroringK8S is true
+    mirroringK8S: true
   transparentProxy:
     defaultEnabled: true
   enabled: true

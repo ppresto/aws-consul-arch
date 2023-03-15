@@ -36,7 +36,7 @@ locals {
         "cloud_provider"     = var.cloud_provider
         "cidr_block"         = "172.25.36.0/23"
         "cluster_id"         = "${var.prefix}-cluster-use1"
-        "tier"               = "development"
+        "tier"               = "plus"
         "min_consul_version" = var.min_consul_version
         "public_endpoint"    = true
         #"hvn_private_route_cidr_list" : ["10.0.0.0/10"] # Default uses [local.all_routable_cidr_blocks_use1]
@@ -59,7 +59,7 @@ locals {
       }
       "eks" = {
         "cluster_name" : "${var.prefix}-use1-app1",
-        "cluster_version" : var.eks_cluster_version,
+        "cluster_version" :  var.eks_cluster_version,
         "ec2_ssh_key" : var.ec2_key_pair_name,
         "cluster_endpoint_private_access" : true,
         "cluster_endpoint_public_access" : true,
@@ -376,15 +376,7 @@ module "eks-use1" {
   # # Extend node-to-node security group rules
 
   cluster_security_group_additional_rules = {
-      "${local.use1[each.key].eks.cluster_name}_ingress_self_all" = {
-      description = "Cluster all ports/protocols"
-      protocol    = "-1"
-      from_port   = 0
-      to_port     = 0
-      type        = "ingress"
-      self        = true
-    }
-    # Test: https://github.com/terraform-aws-modules/terraform-aws-eks/pull/2319
+    # Allow other Internally routable CIDRs ingress access to cluster
     "${local.use1[each.key].eks.cluster_name}_ingress_routable_cidrs" = {
       description              = "Ingress from cluster routable networks"
       protocol                 = "tcp"
@@ -403,14 +395,13 @@ module "eks-use1" {
       type        = "ingress"
       self        = true
     }
-    # Test: https://github.com/terraform-aws-modules/terraform-aws-eks/pull/2319
-    "${local.use1[each.key].eks.cluster_name}_ingress_routable_cidrs" = {
-      description              = "Ingress from routable networks"
-      protocol                 = "tcp"
-      from_port                = 0
-      to_port                  = 0
-      type                     = "ingress"
-      cidr_blocks              = concat(local.all_routable_cidr_blocks_use1, [local.use1[local.hvn_list_use1[0]].hcp-consul.cidr_block])
+    "${local.use1[each.key].eks.cluster_name}_ingress_cluster_all" = {
+      description                   = "Cluster to node all ports/protocols"
+      protocol                      = "-1"
+      from_port                     = 0
+      to_port                       = 0
+      type                          = "ingress"
+      source_cluster_security_group = true
     }
   }
   eks_managed_node_group_defaults = {
@@ -429,7 +420,7 @@ module "eks-use1" {
       # By default, the module creates a launch template to ensure tags are propagated to instances, etc.,
       # so we need to disable it to use the default template provided by the AWS EKS managed node group service
       
-      #use_custom_launch_template = false
+      use_custom_launch_template = false
       #launch_template_name   = "default"
 
       # Remote access cannot be specified with a launch template
