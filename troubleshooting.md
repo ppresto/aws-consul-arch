@@ -51,14 +51,15 @@ SSH to bastion host for access to internal networks.  The TF is leveraging your 
 ```
 ssh-add -L  # Find SSH Keys added
 ssh-add ${HOME}/.ssh/hcp-consul  # If you dont have any keys then add your key being used in TF.
-ssh -A ubuntu@<BASTION_IP>>  # pass your key in memory to the ubuntu Bastion Host you ssh to.
+ssh -A ubuntu@<BASTION_IP>  # pass your key in memory to the ubuntu Bastion Host you ssh to.
 ssh -A ec2_user@<K8S_NODE_IP> # From bastion use your key to access a node in the private network.
+ssh -A -J ubuntu@<PUBLIC_BASTION_IP> ubuntu@<PRIVATE_EC2_IP>
 ```
 
 ### Manually create SSH Key, and AWS keypair
 ```
-ssh-keygen -t rsa -b 4096 -f /tmp/tfc-hcpc-pipelines_rsa -N ''
-publickeyfile="/tmp/tfc-hcpc-pipelines/tfc-hcpc-pipelines_rsa.pub"
+ssh-keygen -t rsa -b 4096 -f /tmp/hcp-consul -N ''
+publickeyfile="/tmp/tfc-hcpc-pipelines/hcp-consul.pub"
 aws_keypair_name=my-aws-keypair-$(date +%Y%m%d)
 echo aws ec2 import-key-pair \
     --region "$AWS_DEFAULT_REGION" \
@@ -456,7 +457,12 @@ kc debug presto-usw2-app1-mesh-gateway-6b48fd8cb9-fmq5w -it --image alpine
 apk add openssl
 openssl s_client -showcerts -connect 10.15.2.155:8443
 ```
-Add openssl package to verify an https endpoint
+Add openssl package to verify an https endpoint.
+
+netshoot has many utilities including openssl.
+```
+kc debug presto-usw2-app1-mesh-gateway-6b48fd8cb9-k4v2r -it --image nicolaka/netshoot
+```
 
 ### Consul - Ingress GW
 ```

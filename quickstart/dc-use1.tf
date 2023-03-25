@@ -403,6 +403,14 @@ module "eks-use1" {
       type                          = "ingress"
       source_cluster_security_group = true
     }
+    "${local.use1[each.key].eks.cluster_name}_ingress_hcp_to_eks" = {
+      description                   = "HCP Cluster to all EKS Nodes to support MGW Peering"
+      protocol                      = "tcp"
+      from_port                     = 8443
+      to_port                       = 8443
+      type                          = "ingress"
+      cidr_blocks                   = [local.hvn_cidrs_map_use1.hvn.cidr]
+    }
   }
   eks_managed_node_group_defaults = {
     ami_type       = "AL2_x86_64"

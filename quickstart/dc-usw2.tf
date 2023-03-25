@@ -354,6 +354,18 @@ module "route_add_usw2" {
   transit_gateway_id     = module.tgw-usw2[each.value.tgw_env].ec2_transit_gateway_id
   depends_on = [module.tgw_vpc_attach_usw2]
 }
+#Add private routes to public route table to support SSH from bastion host.
+module "route_public_add_usw2" {
+  source = "../modules/aws_route_add"
+  providers = {
+    aws = aws.usw2
+  }
+  for_each               = local.vpc_routes_map_usw2
+  route_table_id         = module.vpc-usw2[each.value.target_vpc].public_route_table_ids[0]
+  destination_cidr_block = each.value.cidr
+  transit_gateway_id     = module.tgw-usw2[each.value.tgw_env].ec2_transit_gateway_id
+  depends_on = [module.tgw_vpc_attach_usw2]
+}
 # Create static HVN route with local.usw2.usw2-shared.hcp-consul.cidr_block
 module "route_add_hcp_usw2" {
   source = "../modules/aws_route_add"
@@ -446,6 +458,14 @@ module "eks-usw2" {
       to_port                       = 0
       type                          = "ingress"
       source_cluster_security_group = true
+    }
+    "${local.usw2[each.key].eks.cluster_name}_ingress_hcp_to_eks" = {
+      description                   = "HCP Cluster to all EKS Nodes to support MGW Peering"
+      protocol                      = "tcp"
+      from_port                     = 8443
+      to_port                       = 8443
+      type                          = "ingress"
+      cidr_blocks                   = [local.hvn_cidrs_map_usw2.hvn.cidr]
     }
     # "${local.usw2[each.key].eks.cluster_name}_ingress_routable_cidrs" = {
     #   description              = "Ingress from routable networks"
@@ -546,6 +566,19 @@ module "hcp_consul_policy-usw2" {
   consul_service    = each.key
 
 }
+module "hcp_consul_ec2_iam_auth_method-usw2" {
+  providers = {
+    aws = aws.usw2
+  }
+  source   = "../modules/hcp_consul_ec2_iam_auth_method"
+}
+module "hcp_consul_ec2_iam_profile-usw2" {
+  # Create default ec2 profile used by consul agents
+providers = {
+    aws = aws.usw2
+  }
+  source   = "../modules/hcp_consul_ec2_iam_profile"
+}
 module "hcp_consul_ec2_client-usw2" {
   providers = {
     aws = aws.usw2
@@ -561,6 +594,7 @@ module "hcp_consul_ec2_client-usw2" {
   subnet_id                   = each.value.target_subnets == "public_subnets" ? module.vpc-usw2[each.value.vpc_env].public_subnets[0] : module.vpc-usw2[each.value.vpc_env].private_subnets[0]
   security_group_ids          = [module.sg-consul-agents-usw2[each.value.vpc_env].securitygroup_id]
   consul_service              = local.ec2_map_usw2[each.key].service
+  instance_profile_name       = module.hcp_consul_ec2_iam_profile-usw2.instance_profile_name
   consul_acl_token_secret_id  = module.hcp_consul_policy-usw2[local.ec2_map_usw2[each.key].service].consul_service_api_token
   consul_datacenter           = module.hcp_consul_usw2[local.hvn_list_usw2[0]].datacenter
   consul_public_endpoint_url  = module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_public_endpoint_url
@@ -689,4 +723,11 @@ output "usw2_retry_join" {
 }
 output "usw2_consul_public_endpoint_url" {
   value = module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_public_endpoint_url
+}
+
+output "usw2_consul_ec2_iam_arn" {
+  value = module.hcp_consul_ec2_iam_profile-usw2.instance_profile_arn
+}
+output "usw2_hcp_consul_ec2_iam_auth_config" {
+  value = module.hcp_consul_ec2_iam_auth_method-usw2.config_json
 }

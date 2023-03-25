@@ -36,6 +36,11 @@ variable "use_latest_ami" {
   default     = true
 }
 
+variable "instance_profile_name" {
+  description = "IAM Profile for EC2 instance running a Consul client"
+  type =      string
+  default     = ""
+}
 variable "ec2_key_pair_name" {
   description = "An existing EC2 key pair used to access the bastion server."
   type        = string

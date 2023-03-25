@@ -10,6 +10,10 @@ export CONSUL_HTTP_ADDR=$(echo $output | jq -r '.usw2_consul_public_endpoint_url
 export CONSUL_HTTP_TOKEN=$(echo $output | jq -r '.usw2_consul_root_token_secret_id.value')
 
 env | grep CONSUL_HTTP
+
+# Stream Server logs (random server behind LB chosen)
+# consul monitor -log-level=trace
+
 # Connect CA is 3 day default in Envoy
 # curl -s ${CONSUL_HTTP_ADDR}/v1/connect/ca/roots | jq -r '.Roots[0].RootCert' | openssl x509 -text -noout
 
