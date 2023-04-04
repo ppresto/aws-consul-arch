@@ -18,18 +18,18 @@ resource "aws_iam_role" "consul_role" {
 EOF
 
   tags = {
-      tag-key = "tag-value"
+    tag-key = "tag-value"
   }
 }
 
 resource "aws_iam_instance_profile" "consul_profile" {
   name = "consul_profile"
-  role = "${aws_iam_role.consul_role.name}"
+  role = aws_iam_role.consul_role.name
 }
 
 resource "aws_iam_role_policy" "getrole_policy" {
   name = "getrole_policy"
-  role = "${aws_iam_role.consul_role.id}"
+  role = aws_iam_role.consul_role.id
 
   policy = <<EOF
 {

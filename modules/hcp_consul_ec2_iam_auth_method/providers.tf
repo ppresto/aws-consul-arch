@@ -16,9 +16,3 @@ terraform {
     }
   }
 }
-
-provider "consul" {
-  address    = "https://presto-cluster-usw2.consul.328306de-41b8-43a7-9c38-ca8d89d06b07.aws.hashicorp.cloud:443"
-  datacenter = "presto-cluster-usw2"
-  token  = "80516bf8-1a72-71b0-ccb4-5fa008deaf97"
-}

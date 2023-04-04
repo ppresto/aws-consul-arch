@@ -188,3 +188,6 @@ output "vpc_tgw_cidr_routes" {
 output "region_shortname" {
   value = join("", regex("([a-z]{2}).*-([a-z]).*-(\\d+)", "us-west-2"))
 }
+output "test-regex" {
+  value = regex("http?s://(.*)", "https://presto-cluster-usw2.private.consul.328306de-41b8-43a7-9c38-ca8d89d06b07.aws.hashicorp.cloud")
+}

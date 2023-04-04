@@ -249,6 +249,12 @@ Switch Contexts using team aliases
 team1
 team2
 ```
+
+Label node
+```
+kubectl label nodes ip-10-16-1-177.us-west-2.compute.internal nodetype=consul
+```
+
 ### EKS - Helm Install manually to debug
 Manually install consul using Helm.  The test.yaml below can be created from existing Terraform Output.  Make sure you are using a [compatable consul-k8s helm chart version](https://www.consul.io/docs/k8s/compatibility).  Make sure you create the k8s secrets in the correct namespace that the helm chart is expecting.
 ```

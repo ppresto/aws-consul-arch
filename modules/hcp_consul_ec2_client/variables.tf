@@ -38,8 +38,8 @@ variable "use_latest_ami" {
 
 variable "instance_profile_name" {
   description = "IAM Profile for EC2 instance running a Consul client"
-  type =      string
-  default     = ""
+  type        = string
+  default     = null
 }
 variable "ec2_key_pair_name" {
   description = "An existing EC2 key pair used to access the bastion server."
@@ -89,15 +89,15 @@ variable "consul_datacenter" {
   description = "hcp consul_datacenter"
   type        = string
 }
-variable "consul_ca_file" {
+variable "hcp_consul_ca_file" {
   description = "hcp consul_ca_file"
   type        = string
 }
-variable "consul_config_file" {
+variable "hcp_consul_config_file" {
   description = "hcp consul_config_file"
   type        = string
 }
-variable "consul_root_token_secret_id" {
+variable "hcp_consul_root_token_secret_id" {
   description = "hcp consul_root_token_secret_id"
   type        = string
 }

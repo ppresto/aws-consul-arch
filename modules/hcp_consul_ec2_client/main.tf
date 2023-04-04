@@ -8,17 +8,17 @@ data "aws_ssm_parameter" "ubuntu_1804_ami_id" {
 data "template_file" "userdata" {
   template = file("${path.module}/templates/client-systemd.sh")
   vars = {
-    CONSUL_CA_FILE     = var.consul_ca_file
-    CONSUL_CONFIG_FILE = var.consul_config_file
-    CONSUL_ACL_TOKEN   = var.consul_root_token_secret_id
+    CONSUL_CA_FILE     = var.hcp_consul_ca_file
+    CONSUL_CONFIG_FILE = var.hcp_consul_config_file
+    CONSUL_ACL_TOKEN   = var.hcp_consul_root_token_secret_id
     SERVICE_ACL_TOKEN  = var.consul_acl_token_secret_id
     CONSUL_SERVICE     = var.consul_service
   }
 }
 resource "aws_instance" "ec2" {
-  ami           = var.use_latest_ami ? data.aws_ssm_parameter.ubuntu_1804_ami_id.value : var.ami_id
-  instance_type = "t3.micro"
-  key_name      = var.ec2_key_pair_name
+  ami                  = var.use_latest_ami ? data.aws_ssm_parameter.ubuntu_1804_ami_id.value : var.ami_id
+  instance_type        = "t3.micro"
+  key_name             = var.ec2_key_pair_name
   iam_instance_profile = var.instance_profile_name
   #vpc_security_group_ids      = [aws_security_group.bastion.id]
   vpc_security_group_ids      = concat([aws_security_group.bastion.id], var.security_group_ids)

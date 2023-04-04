@@ -1,0 +1,98 @@
+global:
+  name: consul
+  image: "hashicorp/consul-enterprise:${consul_version}"
+  imageK8S: docker.mirror.hashicorp.services/hashicorp/consul-k8s-control-plane:${consul_helm_chart_version}
+  imageConsulDataplane: "hashicorp/consul-dataplane:1.0.0"
+  enableConsulNamespaces: true
+  enterpriseLicense:
+    secretName: 'consul-ent-license'
+    secretKey: 'key'
+    enableLicenseAutoload: true
+  datacenter: ${datacenter}
+  peering:
+    enabled: true
+  adminPartitions:
+    enabled: true
+    name: ${partition}
+
+  # TLS configures whether Consul components use TLS.
+  tls:
+    enabled: true
+  acls:
+    manageSystemACLs: true
+  %{~ if node_selector != "" ~}
+    nodeSelector: |
+      ${node_selector}
+  %{~ endif ~}
+server:
+  replicas: 3
+  bootstrapExpect: 3
+  exposeService:
+    # When enabled, deploys a Kubernetes Service to reach the Consul servers.
+    # @type: boolean
+    enabled: true
+    type: LoadBalancer
+    annotations: |
+      service.beta.kubernetes.io/aws-load-balancer-type: "nlb-ip"
+  %{~ if node_selector != "" ~}
+  nodeSelector: |
+    ${node_selector}
+  %{~ endif ~}
+ 
+  extraConfig: |
+    {
+      "log_level": "TRACE"
+    }
+    
+dns:
+  enabled: true
+  enableRedirection: true
+
+webhookCertManager:
+  %{~ if node_selector != "" ~}
+  nodeSelector: |
+    ${node_selector}
+  %{~ endif ~}
+
+connectInject:
+  enabled: true
+  default: false
+  transparentProxy:
+    defaultEnabled: false
+  consulNamespaces:
+    mirroringK8S: true
+  %{~ if node_selector != "" ~}
+  nodeSelector: |
+    ${node_selector}
+  %{~ endif ~}
+
+meshGateway:
+  enabled: true
+  replicas: 1
+  service:
+    enabled: true
+    type: LoadBalancer
+    annotations: |
+      service.beta.kubernetes.io/aws-load-balancer-type: "nlb-ip"
+  %{~ if node_selector != "" ~}
+  nodeSelector: |
+    ${node_selector}
+  %{~ endif ~}
+ingressGateways:
+  enabled: true
+  defaults:
+    replicas: 1
+  gateways:
+    - name: ingress-gateway
+      service:
+        type: LoadBalancer
+  %{~ if node_selector != "" ~}
+  nodeSelector: |
+    ${node_selector}
+  %{~ endif ~}
+
+ui:
+  enabled: true
+  service:
+    enabled: true
+    type: LoadBalancer
