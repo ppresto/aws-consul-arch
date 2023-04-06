@@ -211,6 +211,8 @@ module "vpc-usw2" {
 }
 
 # Create EKS cluster per VPC defined in local.usw2
+# NOTE: The selfmanaged module doesn't support for_each. Its required to config k8s provider.
+# selfmanaged nodes need to configure the aws_auth config map to access K8s cluster.
 module "eks-usw2" {
   # https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/latest
   providers = {
@@ -240,7 +242,7 @@ data "template_file" "eks_clients_usw2" {
     cluster_name                = try(local.usw2[each.key].eks.cluster_name, local.name)
     datacenter                  = try(module.hcp_consul_usw2[local.hvn_list_usw2[0]].datacenter, "dc1")
     release_name                = "consul-${each.key}"
-    consul_external_servers     = try(jsondecode(base64decode(module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_config_file)).retry_join[0], "INPUT_REQUIRED")
+    consul_external_servers     = try(jsondecode(base64decode(module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_config_file)).retry_join[0], "INPUT_CONSUL_EXT_SERVERS")
     eks_cluster_endpoint        = module.eks-usw2.cluster_endpoint
     consul_version              = var.consul_version
     consul_helm_chart_version   = var.consul_helm_chart_version
@@ -263,9 +265,6 @@ resource "local_file" "usw2" {
 output "usw2_regions" {
   value = { for k, v in local.usw2 : k => data.aws_region.usw2.name }
 }
-# output "usw2_regions" {
-#   value = { for k, v in local.usw2 : k => local.usw2[k].region }
-# }
 output "usw2_projects" { # Used by ./scripts/kubectl_connect_eks.sh to loop through Proj/Env and Auth to EKS clusters
   value = [for proj in sort(keys(local.usw2)) : proj]
 }

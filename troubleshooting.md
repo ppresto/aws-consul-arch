@@ -499,9 +499,15 @@ Next test the web app container can use the virtual lookup to connect to the api
 kubectl -n web exec deploy/web -c web -- wget -qO- http://api.virtual.api.ns.default.ap.usw2.dc.consul
 ```
 ## Metrics
+Metrics gathering is currently being configured outside of this repo. Connect to your EKS cluster and run the following commands to setup the Metrics Stack (prometheus, grafana)
+```
+git clone https://github.com/ppresto/terraform-aws-azure-load-test.git
+cd terraform-aws-azure-load-test
+deploy/deploy_all.sh
+```
 
 ### Deploy Prometheus
-Deploy Metrics tools to the Metrics nodes of the EKS cluster using nodeSelector in values.yaml or set on CLI.
+Manually deploy metrics tools to the Metrics nodes of the EKS cluster using nodeSelector in values.yaml or set on CLI.
 ```
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
@@ -524,6 +530,7 @@ kubectl --namespace default port-forward $POD_NAME 9091 &
 ```
 
 ### Deploy Grafana
+Manual deployment steps
 ```
 helm repo add grafana https://grafana.github.io/helm-charts
 helm install -f deploy/helm/grafana-values.yaml grafana grafana/grafana --wait
@@ -541,19 +548,6 @@ Login (admin/passwword)
 
 ### Deploy Fortio
 ```
-kubectl apply -f deploy/apps/fortio-client.yaml
-kubectl apply -f deploy/apps/fortio-server-defaults.yaml
-kubectl apply -f deploy/apps/fortio-server-small.yaml
-kubectl apply -f deploy/apps/fortio-server-medium.yaml
-kubectl apply -f deploy/apps/fortio-server-large.yaml
-```
-
-Open fortio to the ingress controller (optional)
-```
-kubectl apply -f deploy/config/crd/ingress-gateway/ingress-gateway.yaml
-```
-
-Alternatively port forward to fortio
-```
-kubectl port-forward service/fortio-client 8080:8080
+kubectl apply -f deploy/fortio/init-consul-config
+kubectl apply -f deploy/fortio
 ```
