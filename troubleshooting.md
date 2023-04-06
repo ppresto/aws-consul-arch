@@ -14,6 +14,8 @@
   - [Consul - DNS](#consul---dns)
     - [Consul - DNS lookups](#consul---dns-lookups)
     - [Consul - DNS lookups on EKS](#consul---dns-lookups-on-eks)
+    - [Consul - Mesh GW](#consul---mesh-gw)
+    - [Consul - Ingress GW](#consul---ingress-gw)
     - [Consul - DNS Forwarding](#consul---dns-forwarding)
     - [Consul - Deregister Node from HCP.](#consul---deregister-node-from-hcp)
     - [Consul - Connect CA](#consul---connect-ca)
@@ -31,9 +33,11 @@
   - [Envoy](#envoy)
     - [Envoy - Change logging level](#envoy---change-logging-level)
     - [Envoy - Read fake-service envoy-sidcar configuration](#envoy---read-fake-service-envoy-sidcar-configuration)
-    - [Consul - Mesh GW](#consul---mesh-gw)
-    - [Consul - Ingress GW](#consul---ingress-gw)
-  - [Partitions](#partitions)
+  - [Metrics](#metrics)
+    - [Deploy Prometheus](#deploy-prometheus)
+    - [Deploy Grafana](#deploy-grafana)
+  - [Load Testing](#load-testing)
+    - [Deploy Fortio](#deploy-fortio)
 
 <!-- /TOC -->
 # Troubleshooting
@@ -199,6 +203,32 @@ kubectl exec busybox -- nslookup api.virtual.az1.ns.default.ap.aks1-westus2.dc.c
 ```
 Additional Info:
 https://aws.amazon.com/premiumsupport/knowledge-center/eks-dns-failure/
+
+### Consul - Mesh GW
+Connect to mesh gateway by attaching a debug container to the pod
+```
+kc debug presto-usw2-app1-mesh-gateway-6b48fd8cb9-fmq5w -it --image alpine
+apk add openssl
+openssl s_client -showcerts -connect 10.15.2.155:8443
+```
+Add openssl package to verify an https endpoint.
+
+netshoot has many utilities including openssl.
+```
+kc debug presto-usw2-app1-mesh-gateway-6b48fd8cb9-k4v2r -it --image nicolaka/netshoot
+```
+### Consul - Ingress GW
+```
+kubectl -n consul exec deploy/team1-ingress-gateway -c ingress-gateway -- wget -qO- 127.0.0.1:19000/clusters?format=json
+
+kubectl -n consul exec deploy/team1-ingress-gateway -c ingress-gateway -- wget -qO- http://localhost:19000/config_dump
+
+kubectl -n consul exec deploy/team1-ingress-gateway -c ingress-gateway -- wget -qO- 127.0.0.1:19000/config_dump | jq '[.. |."dynamic_route_configs"? | select(. != null)[0]]'
+
+kubectl -n consul exec deploy/team1-ingress-gateway -c ingress-gateway -- wget -qO- http://localhost:8080
+
+kubectl -n consul exec -it deploy/team1-ingress-gateway -c ingress-gateway -- wget --no-check-certificate -qO- http://web.virtual.consul
+```
 ### Consul - DNS Forwarding
 Once DNS lookups are working through the local consul client,  setup DNS forwarding to port 53 to work for all requests by default.
 https://learn.hashicorp.com/tutorials/consul/dns-forwarding
@@ -216,6 +246,19 @@ curl \
 curl -s ${CONSUL_HTTP_ADDR}/v1/connect/ca/roots | jq -r '.Roots[0].RootCert' | openssl x509 -text -noout
 ```
 ### Consul - Admin Partitions.
+
+Consul CLI to generate peering token
+```
+consul peering generate-token -partition=eastus-shared -name=consul1-westus2 -server-external-addresses=1.2.3.4:8502 -token "${CONSUL_HTTP_TOKEN}"
+```
+
+Consul CLI to delete peeering
+```
+consul peering delete -name=presto-cluster-usw2 -partition=test -token "${CONSUL_HTTP_TOKEN}"
+
+curl -sk --header "X-Consul-Token: ${CONSUL_HTTP_TOKEN}" \
+--request DELETE ${CONSUL_HTTP_ADDR}/v1/peering/presto-cluster-usw2
+```
 
 Setup: https://github.com/hashicorp/consul-k8s/blob/main/docs/admin-partitions-with-acls.md
 
@@ -455,45 +498,62 @@ Next test the web app container can use the virtual lookup to connect to the api
 ```
 kubectl -n web exec deploy/web -c web -- wget -qO- http://api.virtual.api.ns.default.ap.usw2.dc.consul
 ```
+## Metrics
 
-### Consul - Mesh GW
-Connect to mesh gateway by attaching a debug container to the pod
+### Deploy Prometheus
+Deploy Metrics tools to the Metrics nodes of the EKS cluster using nodeSelector in values.yaml or set on CLI.
 ```
-kc debug presto-usw2-app1-mesh-gateway-6b48fd8cb9-fmq5w -it --image alpine
-apk add openssl
-openssl s_client -showcerts -connect 10.15.2.155:8443
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+helm install -f deploy/helm/prometheus-values.yaml prometheus prometheus-community/prometheus --version "15.5.3" --wait
+helm install prometheus-consul-exporter prometheus-community/prometheus-consul-exporter --set nodeSelector.nodetype=default --wait
 ```
-Add openssl package to verify an https endpoint.
+The Prometheus server can be accessed via port 80 on the following DNS name from within your cluster:
+`prometheus-server.default.svc.cluster.local`
 
-netshoot has many utilities including openssl.
+Get the Prometheus server URL by running these commands in the same shell:
 ```
-kc debug presto-usw2-app1-mesh-gateway-6b48fd8cb9-k4v2r -it --image nicolaka/netshoot
-```
-
-### Consul - Ingress GW
-```
-kubectl -n consul exec deploy/team1-ingress-gateway -c ingress-gateway -- wget -qO- 127.0.0.1:19000/clusters?format=json
-
-kubectl -n consul exec deploy/team1-ingress-gateway -c ingress-gateway -- wget -qO- http://localhost:19000/config_dump
-
-kubectl -n consul exec deploy/team1-ingress-gateway -c ingress-gateway -- wget -qO- 127.0.0.1:19000/config_dump | jq '[.. |."dynamic_route_configs"? | select(. != null)[0]]'
-
-kubectl -n consul exec deploy/team1-ingress-gateway -c ingress-gateway -- wget -qO- http://localhost:8080
-
-kubectl -n consul exec -it deploy/team1-ingress-gateway -c ingress-gateway -- wget --no-check-certificate -qO- http://web.virtual.consul
+export POD_NAME=$(kubectl get pods --namespace default -l "app=prometheus,component=server" -o jsonpath="{.items[0].metadata.name}")
+kubectl --namespace default port-forward $POD_NAME 9090 &
 ```
 
-## Partitions
-
-Consul CLI to generate peering token
+Get the PushGateway URL by running these commands in the same shell:
 ```
-consul peering generate-token -partition=eastus-shared -name=consul1-westus2 -server-external-addresses=1.2.3.4:8502 -token "${CONSUL_HTTP_TOKEN}"
+export POD_NAME=$(kubectl get pods --namespace default -l "app=prometheus,component=pushgateway" -o jsonpath="{.items[0].metadata.name}") 
+kubectl --namespace default port-forward $POD_NAME 9091 &
 ```
 
-Consul CLI to delete peeering
+### Deploy Grafana
 ```
-consul peering delete -name=presto-cluster-usw2 -partition=test -token "${CONSUL_HTTP_TOKEN}"
+helm repo add grafana https://grafana.github.io/helm-charts
+helm install -f deploy/helm/grafana-values.yaml grafana grafana/grafana --wait
+helm install -f deploy/helm/grafana-values.yaml grafana grafana/grafana --set nodeSelector.nodetype=default --wait
+```
 
-curl -sk --header "X-Consul-Token: ${CONSUL_HTTP_TOKEN}" \
---request DELETE ${CONSUL_HTTP_ADDR}/v1/peering/presto-cluster-usw2
+Grafana URL to visit by running these commands in the same shell:
+```
+export POD_NAME=$(kubectl get pods --namespace default -l "app.kubernetes.io/name=grafana,app.kubernetes.io/instance=grafana" -o jsonpath="{.items[0].metadata.name}")
+kubectl --namespace default port-forward $POD_NAME 3000 &
+```
+Login (admin/passwword)
+
+## Load Testing
+
+### Deploy Fortio
+```
+kubectl apply -f deploy/apps/fortio-client.yaml
+kubectl apply -f deploy/apps/fortio-server-defaults.yaml
+kubectl apply -f deploy/apps/fortio-server-small.yaml
+kubectl apply -f deploy/apps/fortio-server-medium.yaml
+kubectl apply -f deploy/apps/fortio-server-large.yaml
+```
+
+Open fortio to the ingress controller (optional)
+```
+kubectl apply -f deploy/config/crd/ingress-gateway/ingress-gateway.yaml
+```
+
+Alternatively port forward to fortio
+```
+kubectl port-forward service/fortio-client 8080:8080
 ```

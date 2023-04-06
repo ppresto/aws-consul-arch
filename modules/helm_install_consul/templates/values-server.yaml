@@ -24,6 +24,9 @@ global:
     nodeSelector: |
       ${node_selector}
   %{~ endif ~}
+  metrics:
+    enabled: true
+    enableGatewayMetrics: true
 server:
   replicas: 3
   bootstrapExpect: 3
@@ -43,7 +46,7 @@ server:
     {
       "log_level": "TRACE"
     }
-    
+
 dns:
   enabled: true
   enableRedirection: true
@@ -65,6 +68,12 @@ connectInject:
   nodeSelector: |
     ${node_selector}
   %{~ endif ~}
+  metrics:
+    defaultEnabled: true # by default, this inherits from the value global.metrics.enabled
+    defaultEnableMerging: true
+    # defaultPrometheusScrapePort: 20200
+    # defaultPrometheusScrapePath: "/metrics"
+    # defaultMergedMetricsPort: 20100
 
 meshGateway:
   enabled: true
@@ -82,17 +91,21 @@ ingressGateways:
   enabled: true
   defaults:
     replicas: 1
+    %{~ if node_selector != "" ~}
+    nodeSelector: |
+      ${node_selector}
+    %{~ endif ~}
   gateways:
     - name: ingress-gateway
       service:
         type: LoadBalancer
-  %{~ if node_selector != "" ~}
-  nodeSelector: |
-    ${node_selector}
-  %{~ endif ~}
 
 ui:
   enabled: true
   service:
     enabled: true
     type: LoadBalancer
+  metrics:
+    enabled: true # by default, this inherits from the value global.metrics.enabled
+    provider: "prometheus"
+    baseURL: http://prometheus-server.default.svc.cluster.local

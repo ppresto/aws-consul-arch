@@ -1,3 +1,4 @@
+**/.DS_Store/*
 # Local .terraform directories
 **/.terraform/*
 
@@ -10,6 +11,7 @@
 
 # example code
 **/auto-*.tf
+**/auto-*.yaml
 # Crash log files
 crash.log
 crash.*.log
