@@ -17,8 +17,7 @@ The AWS Load Balancer Controller has been installed to enable internal NLB routi
 ## Getting Started
 
 ### Pre Reqs
-- Setup shell with your AWS credentials
-- Need admin access or permissions to build all Networking, EC2, EKS resources
+- Setup shell with AWS credentials (need permission to build all networking, ec2, eks, & placement groups)
 - Terraform 1.3.7+
 - aws cli
 - kubectl
@@ -31,11 +30,11 @@ terraform init
 terraform apply -auto-approve
 ```
 
-Connect to EKS using `scripts/kubectl_connect_eks.sh` to connect.  Pass this script the path to the terraform state file used to provision the EKS cluster.  If cwd is ./1eks-selfmanaged-pg like above then this command would look like the following:
+Connect to EKS using `scripts/kubectl_connect_eks.sh`.  Pass this script the path to the terraform state file used to provision the EKS cluster.  If cwd is ./1eks-selfmanaged-pg like above then this command would look like the following:
 ```
 source ../../../scripts/kubectl_connect_eks.sh /Users/patrickpresto/Projects/hcp/hcp-consul/quickstart/infra_examples/1eks-selfmanaged-pg
 ```
-This script connects EKS and builds some useful aliases.
+This script connects EKS and builds some useful aliases shown in the output.
 
 ## Setup Monitoring Stack
 Metrics gathering is currently being configured outside of this repo. Verify you are connected to your EKS cluster and then run the following commands to setup the Metrics Stack (prometheus, grafana, fortio)
