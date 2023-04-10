@@ -27,6 +27,8 @@ global:
   metrics:
     enabled: true
     enableGatewayMetrics: true
+    # enableAgentMetrics: true
+    # agentMetricsRetentionTime: "1m"
 server:
   replicas: 3
   bootstrapExpect: 3
