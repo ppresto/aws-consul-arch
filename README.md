@@ -46,6 +46,7 @@ terraform apply -auto-approve
 ## Setup Monitoring Stack
 Metrics gathering is currently being configured outside of this repo. Verify you are connected to your EKS cluster and then run the following commands to setup the Metrics Stack (prometheus, grafana, fortio)
 ```
+cd ../.. # cd out of your current repo.
 git clone https://github.com/ppresto/terraform-aws-azure-load-test.git
 cd terraform-aws-azure-load-test
 deploy/deploy_all.sh

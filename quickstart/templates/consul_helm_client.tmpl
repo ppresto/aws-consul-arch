@@ -11,6 +11,7 @@ module "consul_${cluster_name}" {
   consul_version       = "${consul_version}"
   consul_license       = file("../files/consul.lic")
   consul_helm_chart_template = "${consul_helm_chart_template}"
+  #consul_helm_chart_template  = "values-dataplane-hcp.yaml"
   #consul_helm_chart_template = "values-server.yaml"
   #consul_helm_chart_template = "values-dataplane.yaml"
   consul_helm_chart_version  = "${consul_helm_chart_version}"
