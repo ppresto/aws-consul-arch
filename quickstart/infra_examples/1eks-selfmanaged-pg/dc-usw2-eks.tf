@@ -28,8 +28,9 @@ locals {
         "cluster_endpoint_private_access" : true,
         "cluster_endpoint_public_access" : true,
         "eks_min_size" : 1,
-        "eks_max_size" : 3,
-        "eks_desired_size" : 3
+        "eks_max_size" : 2,
+        "eks_desired_size" : 1
+        "eks_instance_type" : "m6i.large" #c6i.large
         #"service_ipv4_cidr" : "10.16.16.0/24" #Can't overlap with VPC CIDR
       }
     }
@@ -227,6 +228,7 @@ module "eks-usw2" {
   min_size                        = try(local.usw2["usw2-app1"].eks.eks_min_size, var.eks_min_size)
   max_size                        = try(local.usw2["usw2-app1"].eks.eks_max_size, var.eks_max_size)
   desired_size                    = try(local.usw2["usw2-app1"].eks.eks_desired_size, var.eks_desired_size)
+  instance_type                   = try(local.usw2["usw2-app1"].eks.eks_instance_type, null)
   vpc_id                          = module.vpc-usw2["usw2-app1"].vpc_id
   subnet_ids                      = module.vpc-usw2["usw2-app1"].private_subnets
   all_routable_cidrs              = local.all_routable_cidr_blocks_usw2
@@ -240,6 +242,7 @@ data "template_file" "eks_clients_usw2" {
   vars = {
     region_shortname            = "usw2"
     cluster_name                = try(local.usw2[each.key].eks.cluster_name, local.name)
+    server_replicas             = try(local.usw2["usw2-app1"].eks.eks_desired_size, var.eks_desired_size)
     datacenter                  = try(module.hcp_consul_usw2[local.hvn_list_usw2[0]].datacenter, "dc1")
     release_name                = "consul-${each.key}"
     consul_external_servers     = try(jsondecode(base64decode(module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_config_file)).retry_join[0], "INPUT_CONSUL_EXT_SERVERS")
@@ -252,7 +255,7 @@ data "template_file" "eks_clients_usw2" {
     consul_config_file          = try(module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_config_file, "")
     consul_root_token_secret_id = try(module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_root_token_secret_id, "")
     partition                   = var.consul_partition
-    node_selector                = "nodetype: consul" #K8s node label to target deployment too.
+    node_selector                = "nodegroup: consul" #K8s node label to target deployment too.
   }
 }
 

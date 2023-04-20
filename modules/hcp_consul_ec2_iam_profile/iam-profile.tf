@@ -1,5 +1,5 @@
 resource "aws_iam_role" "consul_role" {
-  name = "consul_role"
+  name = var.role_name
 
   assume_role_policy = <<EOF
 {
@@ -23,12 +23,12 @@ EOF
 }
 
 resource "aws_iam_instance_profile" "consul_profile" {
-  name = "consul_profile"
+  name = "${var.role_name}-profile"
   role = aws_iam_role.consul_role.name
 }
 
 resource "aws_iam_role_policy" "getrole_policy" {
-  name = "getrole_policy"
+  name = "${var.role_name}-policy"
   role = aws_iam_role.consul_role.id
 
   policy = <<EOF

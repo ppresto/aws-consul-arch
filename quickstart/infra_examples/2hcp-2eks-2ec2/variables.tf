@@ -35,7 +35,7 @@ variable "cluster_id" {
 variable "min_consul_version" {
   description = "Minimum version of HCP Consul"
   type        = string
-  default     = "1.14.4"
+  default     = "1.14.6"
 }
 variable "consul_version" {
   description = "Consul Version - Agents"

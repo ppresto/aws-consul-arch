@@ -38,6 +38,9 @@
     - [Deploy Grafana](#deploy-grafana)
   - [Load Testing](#load-testing)
     - [Deploy Fortio](#deploy-fortio)
+    - [Fortio Notes](#fortio-notes)
+  - [Troubleshooting](#troubleshooting-1)
+    - [HCP Logs](#hcp-logs)
 
 <!-- /TOC -->
 # Troubleshooting
@@ -550,4 +553,31 @@ Login (admin/passwword)
 ```
 kubectl apply -f deploy/fortio/init-consul-config
 kubectl apply -f deploy/fortio
+```
+
+### Fortio Notes
+
+Run fortio HTTP load test directly against pod
+```
+kubectl exec -it fortio-client-6b78f9c56c-hxzjk -- fortio load -qps 100 -c 10 -r .0001 -t 3s -labels "http test" http://fortio-server-defaults:8080/echo
+```
+
+Run fortio GRPC load test directly against pod
+```
+kubectl exec -it fortio-client-6b78f9c56c-hxzjk -- fortio load -grpc -ping -qps 100 -c 10 -r .0001 -t 3s -labels "grpc test" fortio-server-defaults:8079
+```
+
+run curl (add injector)
+```
+kubectl run -i --rm --restart=Never dummy --image=dockerqa/curl:ubuntu-trusty --command -- curl --silent httpbin:8000/html
+```
+
+## Troubleshooting
+
+### HCP Logs
+```
+# Get consul cluster (all servers) IPs using nslookup
+nslookup $CONSUL_HTTP_ADDR #domain only remove https://
+# Open 3 tabs, create token, and issue monitor command on each IP to tail logs
+CONSUL_HTTP_SSL_VERIFY=false consul monitor -log-level trace -token xxxx -http-addr https://35.166.37.150
 ```

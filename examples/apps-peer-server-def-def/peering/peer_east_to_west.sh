@@ -39,7 +39,7 @@ function setup () {
   echo "Verifying Peering Connection on Acceptor (EAST) with curl command:"
   sleep 5
   # GET CONSUL ENV Values (CONSUL_HTTP_TOKEN, CONSUL_HTTP_ADDR)
-  source ../../../scripts/setConsulEnv-use1.sh 
+  source ../../../scripts/setHCP-ConsulEnv-use1.sh ${CUR_SCRIPT_DIR}/../../../quickstart/infra_examples/2hcp-2eks-2ec2/
   curl -sk --header "X-Consul-Token: ${CONSUL_HTTP_TOKEN}" \
     --request GET ${CONSUL_HTTP_ADDR}/v1/peering/presto-cluster-usw2-default \
     | jq -r
@@ -58,12 +58,12 @@ function setup () {
 # Clean up
 function remove () {
     kubectl config use-context usw2-app1
-    kubectl delete -f ${CUR_SCRIPT_DIR}/exportedServices_presto-cluster-usw2-default.yaml
+    #kubectl delete -f ${CUR_SCRIPT_DIR}/exportedServices_presto-cluster-usw2-default.yaml
     kubectl delete -f ${CUR_SCRIPT_DIR}/peering-dialer-west.yaml
     kubectl -n consul delete secret peering-token-presto-cluster-usw2-default
 
     kubectl config use-context use1-app1
-    kubectl delete -f ${CUR_SCRIPT_DIR}/exportedServices__presto-cluster-use1-default.yaml
+    kubectl delete -f ${CUR_SCRIPT_DIR}/exportedServices_presto-cluster-use1-default.yaml
     kubectl delete -f ${CUR_SCRIPT_DIR}/peering-acceptor-east.yaml
 }
 

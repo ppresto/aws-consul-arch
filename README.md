@@ -2,7 +2,7 @@
 
 This repo builds the required AWS Networking and EKS resources to run either self hosted or HCP Consul in a variety of architectures.
 
-## Single EKS cluster with 3 Node Groups
+## Arch 1: Single EKS cluster with 3 Node Groups
 This configuration creates an AWS EKS cluster with 3 Self Managed Node Groups.
 - default:  Anything can be put here like a monitoring stack.
 - consul:   Consul resources should be placed here
@@ -43,12 +43,40 @@ cd ../../../consul_helm_values
 terraform init
 terraform apply -auto-approve
 ```
+
+### Update Anonymous policy
+Add agent read access to anonymous policy.  This allows Prometheus access to the /agent/metrics endpoint.  The following script requires access to the EKS cluster running consul.  This will setup your local shell env to use Consul CLI and update tne anonymous policy with agent "read".
+```
+../scripts/setEKS-ConsulEnv-AnonPolicy.sh
+```
 ## Setup Monitoring Stack
-Metrics gathering is currently being configured outside of this repo. Verify you are connected to your EKS cluster and then run the following commands to setup the Metrics Stack (prometheus, grafana, fortio)
+Metrics gathering is currently being configured outside of this repo. Verify you are connected to your EKS cluster and then run the following commands to clone the Metrics Stack (prometheus, grafana, fortio) repo.
 ```
 cd ../.. # cd out of your current repo.
 git clone https://github.com/ppresto/terraform-aws-azure-load-test.git
-cd terraform-aws-azure-load-test
-deploy/deploy_all.sh
 ```
+
+Setup the Stack (Prometheus, Grafana)
+```
+cd terraform-aws-azure-load-test
+deploy/deploy_helm.sh
+```
+### Fortio loadtests
+There are multiple test cases contained within a directory.
+* fortio-baseline
+* fortio-consul
+
+Deploy a single test use case
+```
+cd fortio-baseline
+deploy_all.sh
+```
+
+Undeploy the test use case by providing any value as a parameter (ex: delete)
+```
+cd fortio-baseline
+deploy_all.sh delete
+```
+
+
 

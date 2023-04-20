@@ -78,7 +78,7 @@ module "eks" {
 
   self_managed_node_group_defaults = {
     ami_id        = data.aws_ami.eks_default.id
-    instance_type = "m6i.large"
+    instance_type = var.instance_type
     disk_size     = 50
     iam_role_additional_policies = {
       AmazonEC2ContainerRegistryReadOnly = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
@@ -100,7 +100,7 @@ module "eks" {
   self_managed_node_groups = {
     # Default node group - as provisioned by the module defaults
     default_node_group = {
-      bootstrap_extra_args = "--kubelet-extra-args '--node-labels=nodetype=default'"
+      bootstrap_extra_args = "--kubelet-extra-args '--node-labels=nodegroup=default'"
     }
     
     # Consul Node Group
@@ -129,17 +129,13 @@ module "eks" {
       launch_template_use_name_prefix = true
       launch_template_description     = "Self managed node group launch template"
 
-      bootstrap_extra_args = "--kubelet-extra-args '--node-labels=nodetype=consul'" 
+      bootstrap_extra_args = "--kubelet-extra-args '--node-labels=nodegroup=consul'" 
       tags = {
         placementgroup = "true"
       }
-      k8s_labels = {
-        nodetype = "consul"
-        placementGroup = "true"
-      }
       taints = [
         {
-          key    = "dedicated"
+          key    = "nodegroup"
           value  = "consul"
           effect = "NO_SCHEDULE"
         }
@@ -157,7 +153,7 @@ module "eks" {
       desired_size    = var.desired_size
       create_kms_key = false
 
-      bootstrap_extra_args = "--kubelet-extra-args '--node-labels=nodetype=services'" 
+      bootstrap_extra_args = "--kubelet-extra-args '--node-labels=nodegroup=services'" 
       pre_bootstrap_user_data = <<-EOT
         export FOO=bar
       EOT
@@ -208,10 +204,6 @@ module "eks" {
 
       tags = {
         placementgroup = "true"
-      }
-      k8s_labels = {
-        placementGroup = "true"
-        nodetype = "services"
       }
     }
   }

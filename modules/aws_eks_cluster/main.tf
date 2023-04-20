@@ -88,7 +88,7 @@ module "eks" {
       # By default, the module creates a launch template to ensure tags are propagated to instances, etc.,
       # so we need to disable it to use the default template provided by the AWS EKS managed node group service
 
-      #use_custom_launch_template = false
+      use_custom_launch_template = false
       #launch_template_name   = "default"
 
       # Remote access cannot be specified with a launch template
@@ -96,39 +96,13 @@ module "eks" {
       #   ec2_ssh_key               = var.ec2_key_pair_name
       #   source_security_group_ids = [module.sg-consul-dataplane-usw2[each.key].securitygroup_id]
       # }
-      taints = [
-        {
-          key    = "type"
-          value  = "consul"
-          effect = "NO_SCHEDULE"
-        }
-      ]
-      min_size     = var.min_size
-      max_size     = var.max_size
-      desired_size = var.desired_size
-    }
-    consul_node_group = {
-      taints = [
-        {
-          key    = "type"
-          value  = "consul"
-          effect = "NO_SCHEDULE"
-        }
-      ]
-      subnet_ids   = [var.subnet_ids[0]]
-      min_size     = var.min_size
-      max_size     = var.max_size
-      desired_size = var.desired_size
-    }
-    services_node_group = {
-      taints = [
-        {
-          key    = "type"
-          value  = "service"
-          effect = "NO_SCHEDULE"
-        }
-      ]
-      subnet_ids   = [var.subnet_ids[2]]
+      # taints = [
+      #   {
+      #     key    = "type"
+      #     value  = "consul"
+      #     effect = "NO_SCHEDULE"
+      #   }
+      # ]
       min_size     = var.min_size
       max_size     = var.max_size
       desired_size = var.desired_size

@@ -35,6 +35,7 @@ variable "cluster_service_ipv4_cidr" {
   type        = string
   default     = "172.20.0.0/16"
 }
+
 variable "min_size" {
   description = "EKS min size"
   type        = number
@@ -49,6 +50,11 @@ variable "desired_size" {
   description = "EKS max size"
   type        = number
   default     = 3
+}
+variable "instance_type" {
+  description = "EC2 Instance Type"
+  type        = string
+  #default     = "m6i.large"
 }
 variable "all_routable_cidrs" {
   description = "Allow other Internally routable CIDRs ingress access to cluster"

@@ -22,6 +22,12 @@ variable "cluster_name" {
   description = "Name of AKS cluster"
 }
 
+variable "server_replicas" {
+  type        = string
+  description = "consul cluster size"
+  default     = 1
+}
+
 variable "consul_helm_chart_version" {
   type        = string
   description = "Version of Consul helm chart."
@@ -125,11 +131,6 @@ variable "datacenter" {
   type        = string
   default     = "consul datacenter"
   description = "dc1"
-}
-variable "server_replicas" {
-  type        = number
-  default     = 5
-  description = "The number of Consul server replicas"
 }
 variable "node_selector" {
   type = string
