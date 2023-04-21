@@ -39,8 +39,8 @@ module "eks" {
     "${var.cluster_name}_ingress_routable_cidrs" = {
       description = "Ingress from cluster routable networks"
       protocol    = "tcp"
-      from_port   = 0
-      to_port     = 0
+      from_port   = 443
+      to_port     = 443
       type        = "ingress"
       cidr_blocks = concat(var.all_routable_cidrs, var.hcp_cidr)
     }
@@ -85,24 +85,11 @@ module "eks" {
   eks_managed_node_groups = {
     # Default node group - as provided by AWS EKS
     default_node_group = {
-      # By default, the module creates a launch template to ensure tags are propagated to instances, etc.,
-      # so we need to disable it to use the default template provided by the AWS EKS managed node group service
-
-      use_custom_launch_template = false
-      #launch_template_name   = "default"
-
       # Remote access cannot be specified with a launch template
       # remote_access = {
       #   ec2_ssh_key               = var.ec2_key_pair_name
       #   source_security_group_ids = [module.sg-consul-dataplane-usw2[each.key].securitygroup_id]
       # }
-      # taints = [
-      #   {
-      #     key    = "type"
-      #     value  = "consul"
-      #     effect = "NO_SCHEDULE"
-      #   }
-      # ]
       min_size     = var.min_size
       max_size     = var.max_size
       desired_size = var.desired_size

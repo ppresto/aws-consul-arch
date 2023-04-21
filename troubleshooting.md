@@ -579,5 +579,5 @@ kubectl run -i --rm --restart=Never dummy --image=dockerqa/curl:ubuntu-trusty --
 # Get consul cluster (all servers) IPs using nslookup
 nslookup $CONSUL_HTTP_ADDR #domain only remove https://
 # Open 3 tabs, create token, and issue monitor command on each IP to tail logs
-CONSUL_HTTP_SSL_VERIFY=false consul monitor -log-level trace -token xxxx -http-addr https://35.166.37.150
+CONSUL_HTTP_SSL_VERIFY=false consul monitor -log-level debug -token xxxx -http-addr https://35.166.37.150
 ```

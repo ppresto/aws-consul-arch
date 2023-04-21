@@ -1,0 +1,12 @@
+{
+  "Kind": "mesh",
+  "Namespace": "default",
+  "Partition": "default",
+  "Peering": {
+    "PeerThroughMeshGateways": true
+  },
+  "TransparentProxy": {
+    "MeshDestinationsOnly": true
+  }
+}
+

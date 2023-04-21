@@ -22,7 +22,7 @@ metadata:
     app: web
     service: fake-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: web

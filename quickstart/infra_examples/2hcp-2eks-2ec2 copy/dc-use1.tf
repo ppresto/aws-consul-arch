@@ -60,6 +60,7 @@ locals {
       "eks" = {
         "cluster_name" : "${var.prefix}-use1-app1",
         "cluster_version" : var.eks_cluster_version,
+        "consul_partition": "app1",
         "ec2_ssh_key" : var.ec2_key_pair_name,
         "cluster_endpoint_private_access" : true,
         "cluster_endpoint_public_access" : true,

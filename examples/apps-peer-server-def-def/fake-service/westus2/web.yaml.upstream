@@ -22,7 +22,7 @@ metadata:
     app: web
     service: fake-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: web
@@ -34,7 +34,7 @@ spec:
       annotations:
         consul.hashicorp.com/connect-inject: 'true'
         consul.hashicorp.com/transparent-proxy: 'false'
-        consul.hashicorp.com/connect-service-upstreams: 'api.svc.default.ns.consul0-eastus.peer:9091'
+        consul.hashicorp.com/connect-service-upstreams: 'api.svc.default.ns.presto-cluster-use1-default.peer:9091'
         #consul.hashicorp.com/connect-service-upstreams: 'api:9091'
     spec:
       serviceAccountName: web
@@ -49,7 +49,7 @@ spec:
             - name: 'UPSTREAM_URIS'
               value: 'http://localhost:9091'
             - name: 'NAME'
-              value: 'web'
+              value: 'web-west-static-upstream'
             - name: 'MESSAGE'
               value: 'Hello World'
             - name: 'SERVER_TYPE'

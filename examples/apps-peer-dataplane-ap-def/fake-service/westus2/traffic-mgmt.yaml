@@ -5,11 +5,13 @@ metadata:
   name: api
   namespace: default
 spec:
-  connectTimeout: 15s
+  connectTimeout: 0s
   failover:
     '*':
       targets:
-        - peer: consul0-eastus
+        #- namespace: westus2-2
+        #- namespace: westus2-3
+        - peer: eastus-app1
           namespace: default
-          #service: api
+          service: api
 

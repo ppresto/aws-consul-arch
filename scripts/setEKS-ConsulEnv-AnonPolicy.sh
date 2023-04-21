@@ -37,15 +37,3 @@ else
     echo
     consul acl policy read -name "anonymous-token-policy" -format=json | jq -r '.Rules'
 fi
-
-# Stream Server logs (random server behind LB chosen)
-# consul monitor -log-level=trace
-
-# Connect CA is 3 day default in Envoy
-# curl -s ${CONSUL_HTTP_ADDR}/v1/connect/ca/roots | jq -r '.Roots[0].RootCert' | openssl x509 -text -noout
-
-# consul peering generate-token -partition=eastus-shared -name=consul1-westus2 -server-external-addresses=1.2.3.4:8502 -token "${CONSUL_HTTP_TOKEN}"
-# consul peering delete -name=presto-cluster-usw2 -token "${CONSUL_HTTP_TOKEN}"
-
-# curl -sk --header "X-Consul-Token: ${CONSUL_HTTP_TOKEN}" \
-#   --request DELETE ${CONSUL_HTTP_ADDR}/v1/peering/presto-cluster-usw2

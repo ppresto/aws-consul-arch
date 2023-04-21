@@ -23,7 +23,7 @@ metadata:
     version: v1
     service: fake-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: api

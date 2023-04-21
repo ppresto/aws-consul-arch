@@ -5,12 +5,12 @@ metadata:
   name: api
 spec:
   destination:
-    name: "api"
+    name: "*"
+    namespace: default
   sources:
-  - name: "web"
-    action: allow
-  - name: "web"
-    peer: presto-cluster-usw2-default
+  - name: "*"
+    peer: westus2-shared
+    namespace: "*"
     action: allow
   #- name: web
   #  namespace: westus2-1

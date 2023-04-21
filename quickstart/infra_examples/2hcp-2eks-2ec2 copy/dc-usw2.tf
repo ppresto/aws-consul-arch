@@ -65,6 +65,7 @@ locals {
       }
       "eks" = {
         "cluster_name" : "${var.prefix}-usw2-app1",
+        "consul_partition": "app1",
         "cluster_version" : var.eks_cluster_version,
         "ec2_ssh_key" : var.ec2_key_pair_name,
         "cluster_endpoint_private_access" : true,
