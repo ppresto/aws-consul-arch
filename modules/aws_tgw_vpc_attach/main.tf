@@ -1,8 +1,8 @@
 # Get map of subnet ids that includes az
 data "aws_subnet" "ids" {
-  count = length (var.subnet_ids)
+  count = length(var.subnet_ids)
   #for_each = toset(var.subnet_ids) #broken, subnet_ids list unknown at apply time.
-  id       = var.subnet_ids[count.index]
+  id = var.subnet_ids[count.index]
 }
 
 # Invert map so each az has a list of subnets.

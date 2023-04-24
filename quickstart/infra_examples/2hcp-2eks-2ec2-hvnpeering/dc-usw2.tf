@@ -38,11 +38,12 @@ locals {
         "hvn_id"         = "${var.prefix}-hvn-usw2"
         "cloud_provider" = var.cloud_provider
         #"region"             = "us-west-2"
-        "cidr_block"         = "172.25.34.0/23"
-        "cluster_id"         = "${var.prefix}-cluster-usw2"
-        "tier"               = "plus"
-        "min_consul_version" = var.min_consul_version
-        "public_endpoint"    = true
+        "cidr_block"                 = "172.25.34.0/23"
+        "cluster_id"                 = "${var.prefix}-cluster-usw2"
+        "tier"                       = "plus"
+        "min_consul_version"         = var.min_consul_version
+        "public_endpoint"            = true
+        "hvn_to_hvn_peering_enabled" = true #Define multiple HVN's and Peer directly with HCP (not MGW)
         #"hvn_private_route_cidr_list" : ["10.0.0.0/10"] # Default uses [local.all_routable_cidr_blocks_usw2]
       }
       "ec2" = {
@@ -65,7 +66,7 @@ locals {
       }
       "eks" = {
         "cluster_name" : "${var.prefix}-usw2-app1",
-        "consul_partition": "app1",
+        "consul_partition" : "app1",
         "cluster_version" : var.eks_cluster_version,
         "ec2_ssh_key" : var.ec2_key_pair_name,
         "cluster_endpoint_private_access" : true,
@@ -430,7 +431,7 @@ module "hcp_consul_ec2_iam_profile-usw2" {
   providers = {
     aws = aws.usw2
   }
-  source = "../../../modules/hcp_consul_ec2_iam_profile"
+  source    = "../../../modules/hcp_consul_ec2_iam_profile"
   role_name = "consul-usw2"
 }
 module "hcp_consul_ec2_client-usw2" {
@@ -506,7 +507,7 @@ data "template_file" "eks_clients_usw2" {
     consul_config_file          = module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_config_file
     consul_root_token_secret_id = module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_root_token_secret_id
     partition                   = try(local.usw2[each.key].consul_partition, var.consul_partition)
-    node_selector                = "nodegroup: default"
+    node_selector               = "nodegroup: default"
   }
 }
 

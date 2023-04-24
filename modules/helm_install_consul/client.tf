@@ -35,7 +35,7 @@ data "template_file" "consul-client" {
     partition                 = var.consul_partition
     eks_cluster               = var.eks_cluster_endpoint
     consul_external_servers   = var.consul_external_servers
-    node_selector              = var.node_selector
+    node_selector             = var.node_selector
   }
 }
 resource "local_file" "helm-values" {

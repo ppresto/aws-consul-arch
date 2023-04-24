@@ -9,7 +9,7 @@ spec:
     namespace: default
   sources:
   - name: "*"
-    peer: westus2-shared
+    peer: presto-cluster-usw2-app1
     namespace: "*"
     action: allow
   #- name: web

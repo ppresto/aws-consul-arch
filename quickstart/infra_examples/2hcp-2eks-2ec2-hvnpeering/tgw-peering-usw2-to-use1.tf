@@ -2,15 +2,15 @@
 locals {
   # create list of routable_cidr_blocks for each internal VPC to add, convert to map
   regional_routes_usw2 = flatten([for tgw in local.tgw_list_usw2 :
-    flatten([for vpc in local.vpc_list_usw2 : 
-    flatten([for cidr in local.all_routable_cidr_blocks_use1 : {
-      "${tgw}-${vpc}-${cidr}" = {
-        "tgw_env"    = tgw
-        "vpc_env"    = vpc
-        "cidr"       = cidr
-      }
-      }
-    ])
+    flatten([for vpc in local.vpc_list_usw2 :
+      flatten([for cidr in local.all_routable_cidr_blocks_use1 : {
+        "${tgw}-${vpc}-${cidr}" = {
+          "tgw_env" = tgw
+          "vpc_env" = vpc
+          "cidr"    = cidr
+        }
+        }
+      ])
     ])
   ])
   regional_routes_map_usw2 = { for item in local.regional_routes_usw2 : keys(item)[0] => values(item)[0] }
@@ -112,4 +112,8 @@ module "route_add_use1_to_usw2" {
 output "tgw_peering_attachment_tags" {
   value = aws_ec2_transit_gateway_peering_attachment.example_source_peering.tags_all
   #depends_on = [data.aws_ec2_transit_gateway_peering_attachment.example_accepter_peering_data]
+}
+
+output "hvn-self-link" {
+  value = module.hcp_consul_usw2["usw2-shared"].hvn_self_link
 }

@@ -133,7 +133,7 @@ variable "datacenter" {
   description = "dc1"
 }
 variable "node_selector" {
-  type = string
+  type        = string
   description = "Set a nodeSelector to a node lable to force the deployment to specific nodes"
-  default = ""
+  default     = ""
 }

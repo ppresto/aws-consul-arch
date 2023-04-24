@@ -11,7 +11,7 @@ spec:
       targets:
         #- namespace: westus2-2
         #- namespace: westus2-3
-        - peer: eastus-app1
+        - peer: presto-cluster-use1-app1
           namespace: default
           service: api
 

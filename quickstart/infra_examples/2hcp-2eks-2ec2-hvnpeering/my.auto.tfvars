@@ -5,5 +5,4 @@ consul_helm_chart_version  = "1.0.2"
 consul_helm_chart_template = "values-dataplane-hcp.yaml"
 #consul_helm_chart_template = "values-server.yaml"
 #consul_helm_chart_template = "values-dataplane.yaml"
-
-consul_partition            = "default"
+consul_partition = "app1"

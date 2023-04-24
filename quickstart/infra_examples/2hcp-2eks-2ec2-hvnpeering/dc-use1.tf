@@ -32,13 +32,14 @@ locals {
         "ram_allow_external_principals" : true,
       }
       "hcp-consul" = { #Only 1 HVN per region/dc.  
-        "hvn_id"             = "${var.prefix}-hvn-use1"
-        "cloud_provider"     = var.cloud_provider
-        "cidr_block"         = "172.25.36.0/23"
-        "cluster_id"         = "${var.prefix}-cluster-use1"
-        "tier"               = "development"
-        "min_consul_version" = var.min_consul_version
-        "public_endpoint"    = true
+        "hvn_id"                     = "${var.prefix}-hvn-use1"
+        "cloud_provider"             = var.cloud_provider
+        "cidr_block"                 = "172.25.36.0/23"
+        "cluster_id"                 = "${var.prefix}-cluster-use1"
+        "tier"                       = "development"
+        "min_consul_version"         = var.min_consul_version
+        "public_endpoint"            = true
+        "hvn_to_hvn_peering_enabled" = true #Define multiple HVN's and Peer directly with HCP (not MGW)
         #"hvn_private_route_cidr_list" : ["10.0.0.0/10"] # Default uses [local.all_routable_cidr_blocks_use1]
       }
       "ec2" = {
@@ -60,7 +61,7 @@ locals {
       "eks" = {
         "cluster_name" : "${var.prefix}-use1-app1",
         "cluster_version" : var.eks_cluster_version,
-        "consul_partition": "app1",
+        "consul_partition" : "app1",
         "ec2_ssh_key" : var.ec2_key_pair_name,
         "cluster_endpoint_private_access" : true,
         "cluster_endpoint_public_access" : true,
@@ -397,7 +398,7 @@ module "hcp_consul_ec2_iam_profile-use1" {
   providers = {
     aws = aws.use1
   }
-  source = "../../../modules/hcp_consul_ec2_iam_profile"
+  source    = "../../../modules/hcp_consul_ec2_iam_profile"
   role_name = "consul-use1"
 }
 module "hcp_consul_ec2_client-use1" {
@@ -473,7 +474,7 @@ data "template_file" "eks_clients_use1" {
     consul_config_file          = module.hcp_consul_use1[local.hvn_list_use1[0]].consul_config_file
     consul_root_token_secret_id = module.hcp_consul_use1[local.hvn_list_use1[0]].consul_root_token_secret_id
     partition                   = try(local.use1[each.key].consul_partition, var.consul_partition)
-    node_selector                = "nodegroup: default"
+    node_selector               = "nodegroup: default"
   }
 }
 

@@ -28,8 +28,8 @@ module "eks" {
   cluster_name                   = local.name
   cluster_version                = local.cluster_version
   cluster_endpoint_public_access = true
-  vpc_id     = var.vpc_id
-  subnet_ids = var.subnet_ids
+  vpc_id                         = var.vpc_id
+  subnet_ids                     = var.subnet_ids
 
   cluster_addons = {
     coredns = {
@@ -82,7 +82,7 @@ module "eks" {
     disk_size     = 50
     iam_role_additional_policies = {
       AmazonEC2ContainerRegistryReadOnly = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-      AmazonEBSCSIDriverPolicy = data.aws_iam_policy.ebscsi.arn
+      AmazonEBSCSIDriverPolicy           = data.aws_iam_policy.ebscsi.arn
       #additional               = aws_iam_policy.additional.arn
     }
     timeouts = {
@@ -102,16 +102,16 @@ module "eks" {
     default_node_group = {
       bootstrap_extra_args = "--kubelet-extra-args '--node-labels=nodegroup=default'"
     }
-    
+
     # Consul Node Group
     consul = {
       name            = "consul-self-managed"
       use_name_prefix = false
       subnet_ids      = [var.subnet_ids[0]]
-      min_size     = var.min_size
-      max_size     = var.max_size
-      desired_size = var.desired_size
-      create_kms_key = false
+      min_size        = var.min_size
+      max_size        = var.max_size
+      desired_size    = var.desired_size
+      create_kms_key  = false
 
       placement_group = aws_placement_group.consul.id
       placement = {
@@ -129,7 +129,7 @@ module "eks" {
       launch_template_use_name_prefix = true
       launch_template_description     = "Self managed node group launch template"
 
-      bootstrap_extra_args = "--kubelet-extra-args '--node-labels=nodegroup=consul'" 
+      bootstrap_extra_args = "--kubelet-extra-args '--node-labels=nodegroup=consul'"
       tags = {
         placementgroup = "true"
       }
@@ -151,9 +151,9 @@ module "eks" {
       min_size        = var.min_size
       max_size        = var.max_size
       desired_size    = var.desired_size
-      create_kms_key = false
+      create_kms_key  = false
 
-      bootstrap_extra_args = "--kubelet-extra-args '--node-labels=nodegroup=services'" 
+      bootstrap_extra_args    = "--kubelet-extra-args '--node-labels=nodegroup=services'"
       pre_bootstrap_user_data = <<-EOT
         export FOO=bar
       EOT

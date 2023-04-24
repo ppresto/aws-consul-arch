@@ -9,10 +9,10 @@ spec:
     namespace: eastus-1
   sources:
   - name: web
-    peer: westus2-shared
+    peer: presto-cluster-usw2-app1
     namespace: westus2-1
     action: allow
   #- name: web
   #  namespace: westus2-1
-  #  partition: westus2-shared
+  #  partition: presto-cluster-usw2-app1
   #  action: allow

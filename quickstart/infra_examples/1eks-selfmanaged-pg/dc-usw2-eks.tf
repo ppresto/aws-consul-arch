@@ -255,7 +255,7 @@ data "template_file" "eks_clients_usw2" {
     consul_config_file          = try(module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_config_file, "")
     consul_root_token_secret_id = try(module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_root_token_secret_id, "")
     partition                   = var.consul_partition
-    node_selector                = "nodegroup: consul" #K8s node label to target deployment too.
+    node_selector               = "nodegroup: consul" #K8s node label to target deployment too.
   }
 }
 

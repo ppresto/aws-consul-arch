@@ -2,15 +2,15 @@
 locals {
   # create list of routable_cidr_blocks for each internal VPC to add, convert to map
   regional_routes_usw2 = flatten([for tgw in local.tgw_list_usw2 :
-    flatten([for vpc in local.vpc_list_usw2 : 
-    flatten([for cidr in local.all_routable_cidr_blocks_use1 : {
-      "${tgw}-${vpc}-${cidr}" = {
-        "tgw_env"    = tgw
-        "vpc_env"    = vpc
-        "cidr"       = cidr
-      }
-      }
-    ])
+    flatten([for vpc in local.vpc_list_usw2 :
+      flatten([for cidr in local.all_routable_cidr_blocks_use1 : {
+        "${tgw}-${vpc}-${cidr}" = {
+          "tgw_env" = tgw
+          "vpc_env" = vpc
+          "cidr"    = cidr
+        }
+        }
+      ])
     ])
   ])
   regional_routes_map_usw2 = { for item in local.regional_routes_usw2 : keys(item)[0] => values(item)[0] }
