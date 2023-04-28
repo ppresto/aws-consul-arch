@@ -46,6 +46,7 @@ EOF
                     # Install Helm Chart
                     helm repo add eks https://aws.github.io/eks-charts
                     helm repo update
+                    # helm search repo eks/aws-load-balancer-controller --versions
                     helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
                         -n kube-system \
                         --set clusterName="${cluster}" \
