@@ -3,10 +3,8 @@
 
 OUTPUT=`terraform output -raw`
 
-all: infra-deploy eks-connect consul-install metrics-install fortio-install fortio-run-all
+all: infra-deploy eks-connect consul-install metrics-install fortio-install fortio-run-loadtest
 destroy: init metrics-clean consul-clean infra-clean
-fortio-run-all: fortio-run-baseline fortio-run-consul-100 fortio-run-consul-150 fortio-run-consul-logs
-	@-rm /tmp/*.json
 
 fmt:
 	@terraform fmt -recursive
@@ -18,8 +16,6 @@ init: fmt auth
 	@terraform init
 
 infra-deploy: init
-	@-terraform apply -auto-approve
-	@sleep1
 	@terraform apply -auto-approve
 
 eks-connect:
@@ -41,21 +37,22 @@ metrics-install:
 fortio-install:
 	@../../../../terraform-aws-azure-load-test/deploy/fortio-tests/deploy.sh
 
-fortio-run-baseline: auth
-	@-../../../../terraform-aws-azure-load-test/deploy/reports/run.sh  -j -t baseline_http -n fortio-baseline -d300 -w30
-	@-../../../../terraform-aws-azure-load-test/deploy/reports/run.sh  -j -t baseline_grpc -n fortio-baseline -d300 -w30
+fortio-run-baseline-http: auth
+	@../../../../terraform-aws-azure-load-test/deploy/reports/run.sh -j -t baseline_http -d 300
 
-fortio-run-consul-100: auth
-	@-../../../../terraform-aws-azure-load-test/deploy/reports/run.sh  -j -t consul_http -n fortio-consul-100 -d300 -w30
-	@-../../../../terraform-aws-azure-load-test/deploy/reports/run.sh  -j -t consul_grpc -n fortio-consul-100 -d300 -w30
+fortio-run-baseline-grpc: auth
+	@../../../../terraform-aws-azure-load-test/deploy/reports/run.sh -j -t baseline_grpc -d 300
 
-fortio-run-consul-150: auth
-	@-../../../../terraform-aws-azure-load-test/deploy/reports/run.sh  -j -t consul_http -n fortio-consul-150 -d300 -w30
-	@-../../../../terraform-aws-azure-load-test/deploy/reports/run.sh  -j -t consul_grpc -n fortio-consul-150 -d300 -w30
+fortio-run-consul-http: auth
+	@-../../../../terraform-aws-azure-load-test/deploy/reports/run.sh -j -t consul_http -n fortio-consul-100 -w 1 -d 10
+	@-../../../../terraform-aws-azure-load-test/deploy/reports/run.sh -j -t consul_http -n fortio-consul-150 -w 1 -d 10
 
-fortio-run-consul-logs: auth
-	@-../../../../terraform-aws-azure-load-test/deploy/reports/run.sh  -j -t consul_http -n fortio-consul-logs -d300 -w30
-	@-../../../../terraform-aws-azure-load-test/deploy/reports/run.sh  -j -t consul_grpc -n fortio-consul-logs -d300 -w30
+fortio-run-consul-grpc: auth
+	@-../../../../terraform-aws-azure-load-test/deploy/reports/run.sh -j -t consul_grpc -n fortio-consul-100 -d 300
+	@-../../../../terraform-aws-azure-load-test/deploy/reports/run.sh -j -t consul_grpc -n fortio-consul-150 -d 300
+
+fortio-run-all: fortio-run-baseline-http fortio-run-baseline-grpc fortio-run-consul-http fortio-run-consul-grpc
+	@-cat /tmp/*.csv > fortio.all.reports.csv
 
 metrics-clean:
 	@-../../../../terraform-aws-azure-load-test/deploy/fortio-tests/deploy.sh destroy
