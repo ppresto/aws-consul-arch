@@ -32,15 +32,10 @@ consul-info:
 	@echo "Login to Consul UI - West"
 	@source "../../../scripts/setHCP-ConsulEnv-usw2.sh" .
 	@echo
-# This may not require peering script anymore.  Should be completed in TF.
+
 fake-service:
 	@ "../../../examples/apps-peer-dataplane-ap-def/peering/peer_east_to_west.sh"
 	@ "../../../examples/apps-peer-dataplane-ap-def/fake-service/deploy-with-failover.sh"
-consul-use1:
-	@source "../../../scripts/setHCP-ConsulEnv-use1.sh" .
-
-consul-usw2:
-	@source "../../../scripts/setHCP-ConsulEnv-usw2.sh" .
 
 consul-clean:
 	@-../../../examples/apps-peer-dataplane-ap-def/peering/peer_east_to_west.sh del

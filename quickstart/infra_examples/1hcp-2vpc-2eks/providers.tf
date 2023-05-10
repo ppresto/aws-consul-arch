@@ -35,17 +35,6 @@ provider "aws" {
   region = "us-west-2"
 }
 
-provider "aws" {
-  alias  = "use1"
-  region = "us-east-1"
-}
-provider "consul" {
-  alias      = "use1"
-  address    = module.hcp_consul_use1[local.hvn_list_use1[0]].consul_public_endpoint_url
-  datacenter = module.hcp_consul_use1[local.hvn_list_use1[0]].datacenter
-  token      = module.hcp_consul_use1[local.hvn_list_use1[0]].consul_root_token_secret_id
-}
-
 # Required to setup policies/tokens for EC2 services
 provider "consul" {
   alias      = "usw2"

@@ -55,7 +55,7 @@ variable "consul_client_helm_chart_template" {
 variable "consul_version" {
   type        = string
   description = "Version of Consul Enterprise to install"
-  default     = "1.14.4"
+  default     = "1.15.2"
 }
 
 variable "consul_license" {

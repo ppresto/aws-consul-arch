@@ -60,6 +60,7 @@ do
     done
 done
 echo "extra aliases"
+echo "  alias: kk=kubectl -n kube-system"
 echo "  alias: kc=kubectl -n consul"
 echo "  alias: kw=kubectl -n web"
 echo "  alias: ka=kubectl -n api"
