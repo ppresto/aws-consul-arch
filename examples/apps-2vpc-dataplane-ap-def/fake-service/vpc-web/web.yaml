@@ -25,7 +25,7 @@ metadata:
     app: web
     service: fake-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: web
@@ -50,7 +50,7 @@ spec:
             - name: 'UPSTREAM_URIS'
               value: 'http://api.virtual.api.ap.consul:9091'
             - name: 'NAME'
-              value: 'web-west'
+              value: 'web (web/default)'
             - name: 'MESSAGE'
               value: 'Hello World'
             - name: 'SERVER_TYPE'

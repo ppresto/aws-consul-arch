@@ -52,6 +52,7 @@ do
                     echo "  EKS_CLUSTER_NAMES: ${cluster}"
                     alias $(echo ${PROJECTS[$i]})="kubectl config use-context ${PROJECTS[$i]}"
                     alias $(echo ${region:3:4})="kubectl config use-context ${PROJECTS[$i]}"
+                    echo "  alias: ${PROJECTS[$i]} = kubectl config use-context ${PROJECTS[$i]}"
                     echo "  alias: ${region:3:4} = kubectl config use-context ${PROJECTS[$i]}"
                     echo
                 fi

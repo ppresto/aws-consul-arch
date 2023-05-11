@@ -26,7 +26,7 @@ metadata:
     version: v1
     service: fake-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: api
@@ -55,7 +55,7 @@ spec:
             #- name: 'UPSTREAM_URIS'
             #  value: 'grpc://currency.currency-ns:9090,http://payments.payments-ns:9090'
             - name: 'NAME'
-              value: 'api-west'
+              value: 'api (api/default)'
             - name: 'MESSAGE'
               value: 'API response'
             - name: 'SERVER_TYPE'
