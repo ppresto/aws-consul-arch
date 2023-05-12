@@ -1,10 +1,11 @@
 .PHONY: all init deploy plan destroy fmt clean
 .PHONY: consul consul-info consul-use1 consul-usw2 awslb dataplane fake-service
 
-OUTPUT=`terraform output -raw`
-
 all: deploy consul
 
+fmt:
+	@terraform fmt -recursive
+	
 init: fmt
 	@terraform init
 
@@ -29,32 +30,16 @@ consul-info:
 	@echo
 
 fake-service:
-	@ "../../../examples/apps-peer-dataplane-ap-def/peering/peer_east_to_west.sh"
-	@ "../../../examples/apps-peer-dataplane-ap-def/fake-service/deploy-with-failover.sh"
-consul-use1:
-	@source "../../../scripts/setHCP-ConsulEnv-use1.sh" .
-
-consul-usw2:
-	@source "../../../scripts/setHCP-ConsulEnv-usw2.sh" .
+	@ "../../../examples/apps-2vpc-dataplane-ap-def/fake-service/deploy.sh"
 
 consul-clean:
-	@-../../../examples/apps-peer-dataplane-ap-def/peering/peer_east_to_west.sh del
-	@-../../../examples/apps-peer-server-def-def/peering/peer_east_to_west.sh del
-	@-../../../examples/apps-peer-dataplane-ap-def/fake-service/deploy-with-failover.sh del
-	@-../../../examples/apps-peer-server-def-def/fake-service/deploy-with-failover.sh del
-	@-terraform -chdir="../../../consul_helm_values" destroy -auto-approve 
+	@ ../../../examples/apps-2vpc-dataplane-ap-def/fake-service/deploy.sh delete
+	@-terraform -chdir="../../../consul_helm_values" destroy -auto-approve
 	@- helm uninstall -n kube-system aws-load-balancer-controller eks/aws-load-balancer-controller
-	@terraform destroy -auto-approve 
-
-plan: init
-	@terraform validate
-	@terraform plan
+	@terraform destroy -auto-approve
 
 destroy: init consul-clean
 	@terraform destroy -auto-approve 
-
-fmt:
-	@terraform fmt -recursive
 
 clean:
 	-rm -rf .terraform/

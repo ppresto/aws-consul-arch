@@ -19,7 +19,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: network-multitool-deployment
+  name: network-multitool
   namespace: default
   labels:
     app: network-multitool

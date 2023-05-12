@@ -48,12 +48,12 @@ dns:
   enabled: true
   enableRedirection: true
   
-syncCatalog:
-  enabled: true
-  k8sPrefix: null
-  k8sDenyNamespaces: ["kube-system", "kube-public"]
-  consulNamespaces:
-    mirroringK8S: true
+# syncCatalog:
+#   enabled: true
+#   k8sPrefix: null
+#   k8sDenyNamespaces: ["kube-system", "kube-public"]
+#   consulNamespaces:
+#     mirroringK8S: true
 
 connectInject:
   enabled: true
