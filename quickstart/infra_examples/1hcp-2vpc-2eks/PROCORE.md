@@ -12,16 +12,18 @@ This repo uses Terraform to setup 1 HCP cluster, 1 shared VPC with bastion host,
 - Consul 1.15.2  (optional)
 
 ## Setup
-Go to the infrastructure directory and define the admin partition name as a variable.
+To build all required AWS infrastructure for this environment run terraform from this directory.  Source all required AWS and HCP environment variables into your shell before running terraform.
 ```
-cd quickstart/infra_examples/1hcp-2vpc-2eks
+export HCP_CLIENT_ID=
+export HCP_CLIENT_SECRET=
+export AWS_ACCESS_KEY_ID=
+export AWS_SECRET_ACCESS_KEY=
 ```
+
 * edit `my.auto.tfvars` and update the AWS key to your keypair.
 * edit the locals in `dc-usw2.tf` to change the cidrs in HCP and VPCs as needed.
 
-Build the infrastructure if needed.
 ```
-cd quickstart/infra_examples/2hcp-2eks-2ec2
 terraform init
 terraform apply -auto-approve
 ```
