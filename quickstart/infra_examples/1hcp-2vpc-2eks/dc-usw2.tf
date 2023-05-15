@@ -72,8 +72,8 @@ locals {
         "cluster_endpoint_private_access" : true,
         "cluster_endpoint_public_access" : true,
         "eks_min_size" : 1,
-        "eks_max_size" : 1,
-        "eks_desired_size" : 1
+        "eks_max_size" : 3,
+        "eks_desired_size" : 3
         #"service_ipv4_cidr" : "10.16.16.0/24" #Can't overlap with VPC CIDR
       }
       "ec2" = {
@@ -107,9 +107,9 @@ locals {
         "ec2_ssh_key" : var.ec2_key_pair_name,
         "cluster_endpoint_private_access" : true,
         "cluster_endpoint_public_access" : true,
-        "eks_min_size" : 1,
+        "eks_min_size" : 3,
         "eks_max_size" : 1,
-        "eks_desired_size" : 1
+        "eks_desired_size" : 3
         #"service_ipv4_cidr" : "10.16.16.0/24" #Can't overlap with VPC CIDR
       }
       "ec2" = {
