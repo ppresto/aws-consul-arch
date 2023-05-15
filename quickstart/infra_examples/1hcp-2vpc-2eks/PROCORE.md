@@ -61,7 +61,7 @@ source ../../../scripts/setHCP-ConsulEnv-usw2.sh .
 ```
 This script will also output the URL and root token you can use to login.
 
-## Deploy fake-service
+## Deploy fake-service using default namespace
 Deploy fake-service to see services running in the mesh.  This deployment script uses fake-service to deploy an instance of `web` into the web-vpc, and an instance of `api` in the api-vpc.  This deployment shows `web` securely discovering and routing requests to `api` across VPCs, and EKS clusters.
 
 The script configures the following:
@@ -75,6 +75,21 @@ From the terraform directory run the following command.
 ../../../examples/apps-2vpc-dataplane-ap-def/fake-service/deploy.sh
 ```
 The script should output the Ingress URL for web. It might take a couple minutes before being available in DNS.  Once available, the fake service should show `web` accessing its upstream `api` across VPCs and EKS clusters.
+
+## Deploy fake-service into application specific namespaces
+Deploy fake-service to see services running in the mesh.  This deployment script uses fake-service to deploy an instance of `web` into the web-vpc, and an instance of `api` in the api-vpc.  This deployment shows `web` securely discovering and routing requests to `api` across k8s namespaces, EKS clusters, and AWS VPCs.
+
+The script configures the following:
+* service intentions authorizing `web -> api`
+* ingress-gateway (deployed with helm) to route to `web` for external access
+* proxy-defaults and service-defaults for both Consul partitions (aka: EKS clusters).
+* exported-services to expose mesh-gateways and services to the consuming partitions.
+
+From the terraform directory run the following command.
+```
+../../../examples/apps-2vpc-dataplane-ap-ns/fake-service/deploy.sh
+```
+The script should output the Ingress URL for web. It might take a couple minutes before being available in DNS.  Once available, the fake service should show `web` accessing its upstream `api` across namespaces, EKS clusters, and VPCs.
 
 ## IPTable Rules
 Based on our call, I added the `./examples/wbitt-multitool` deployment.  This privilaged container can show the iptables configured by Consul on the node.  Deploy it into the mesh, exec into it to run iptables, and output should look as follows:
