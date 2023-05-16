@@ -51,7 +51,7 @@ spec:
             - name: 'UPSTREAM_URIS'
               value: 'http://api.virtual.api.ns.api.ap.consul:9091'
             - name: 'NAME'
-              value: 'web (web/default)'
+              value: 'web (web.ap/web.ns)'
             - name: 'MESSAGE'
               value: 'Hello World'
             - name: 'SERVER_TYPE'

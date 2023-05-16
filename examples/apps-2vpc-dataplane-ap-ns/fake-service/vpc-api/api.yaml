@@ -55,7 +55,7 @@ spec:
             #- name: 'UPSTREAM_URIS'
             #  value: 'grpc://currency.currency-ns:9090,http://payments.payments-ns:9090'
             - name: 'NAME'
-              value: 'api (api/default)'
+              value: 'api (api.ap/api.ns)'
             - name: 'MESSAGE'
               value: 'API response'
             - name: 'SERVER_TYPE'
