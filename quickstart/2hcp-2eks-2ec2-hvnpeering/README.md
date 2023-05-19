@@ -12,7 +12,7 @@ This configuration creates 2 HCP clusters in different regions.  Each region has
 ## Getting Started
 First, go to the infrastructure directory and define the admin partition name as a variable.
 ```
-cd quickstart/infra_examples/2hcp-2eks-2ec2
+cd quickstart/2hcp-2eks-2ec2
 ```
 edit `my.auto.tfvars` and update the consul_partition to `app1`
 ```
@@ -22,7 +22,7 @@ consul_partition            = "app1"
 
 Use terraform to build the infrastructure.  
 ```
-cd quickstart/infra_examples/2hcp-2eks-2ec2
+cd quickstart/2hcp-2eks-2ec2
 terraform init
 terraform apply -auto-approve
 ```
@@ -31,14 +31,14 @@ terraform apply -auto-approve
 ### Connect to EKS clusters
 Connect to EKS using `./scripts/kubectl_connect_eks.sh`.  Pass this script the path to the terraform state file used to provision the infrastructure.  The easiest way to run this script is by staying in the directory where you ran terraform from (ex: `./2hcp-2eks-2ec2`) and running this command.
 ```
-source ../../../scripts/kubectl_connect_eks.sh .
+source ../../scripts/kubectl_connect_eks.sh .
 ```
 This script connects to both EKS clusters and build useful aliases shown in the output.
 
 ### Install AWS EKS Load Balancer Controller
 The AWS Load Balancer Controller is required to enable NLBs for both internal and external access.  NLBs are the best way to support Mesh Gateways or any EKS Load balancer resource that requires an internal IP.  The helm chart that will be used next to bootstrap the EKS clusters to Consul will use this controller to allocate an internal NLB for the mesh gateway running on EKS. Pass the directory with the terraform.tfstate file as a parameter.  If you are following this guide and already in the directory simply run the command below.
 ```
-../../../scripts/install_awslb_controller.sh .
+../../scripts/install_awslb_controller.sh .
 ```
 This script was written outside of TF to overcome provider limitations and install the controller on multiple EKS clusters at once.  To set this up using terraform refer to `modules/aws_eks_cluster_selfmanaged/aws_lb_controller.tf`
 
@@ -56,14 +56,14 @@ From the directory you created your initial infrastructure run the env scripts t
 * CONSUL_HTTP_ADDR
 * CONSUL_HTTP_TOKEN
 ```
-cd - #Go back to ../quickstart/infra_examples/2hcp-2eks-2ec2
-source ../../../scripts/setHCP-ConsulEnv-usw2.sh  .
+cd - #Go back to ../quickstart/2hcp-2eks-2ec2
+source ../../scripts/setHCP-ConsulEnv-usw2.sh  .
 ```
 Open a tab on your browser, cut/paste the URL, and login to the us-west-2 HCP Consul UI with the token.  
 
 Now do the same thing for your other cluster.
 ```
-source ../../../scripts/setHCP-ConsulEnv-use1.sh  .
+source ../../scripts/setHCP-ConsulEnv-use1.sh  .
 ```
 Open a new tab on your browser for us-east-1, cut/paste that URL, and login to the HCP Consul UI with the us-east-1 token
 
@@ -89,18 +89,7 @@ kubectl apply -f examples/apps-peer-server-def-def/fake-service/eastus/init-cons
 ```
 
 ## Peer HCP Consul Data Centers (us-east-1 to us-west-2)
-The script assumes `kubectl_connect_eks.sh` was used to authenticate to both EKS clusters, and that the infrastructure was built in `quickstart/infra_examples/2hcp-2eks-2ec2` which contains the current terraform state.  The script will do the following:
-1. Use K8s CRDs to configure the Peering connection
-2. Create a Peering Acceptor (us-east-1) which will create a secret with the CA, MGW location, and token
-3. Output the Acceptor K8s secret for visibility
-4. Copy the Acceptor secret to the Peering Dialer (us-west-2) which needs this to establish a connection
-5. Create a Peering Dialer (us-west-2) using the secret
-6. Verify the Peering Connection on the Acceptor using the API
-7. Export the `api` service from us-east-1 to us-west-2 using the peering connection.
-```
-examples/apps-peer-server-def-def/peering/peer_east_to_west.sh
-```
-If the Peering stays in a `PENDING` state there is most likely a L3 network connectivity problem.  Check the Troubleshooting section.  If you see an `ACTIVE` state then the Peering was successful.  Go to the left panel for both HCP Consul data centers and click on `Peers` for more information.
+The datacenters should already be peered using the HVN via Terraform.
 
 ### Test Regional Failover
 The script tat created the Peering connection exported the `api` service from the peer in us-east-1 to us-west-2. Look in the West HCP Consul UI and the imported `api` service should be visible.  If not reload the page.  After verifying the imported service is healthy, verify failover is setup.
@@ -120,8 +109,8 @@ The `api` service should no longer be running in the west.  Now reload the brows
 ### Tail HCP Consul Logs using the CLI
 Setup your environment by going to the dir with the terraform state file and sourcing the following script.
 ```
-cd quickstart/infra_examples/2hcp-2eks-2ec2
-source ../../../scripts/setHCP-ConsulEnv-usw2.sh .
+cd quickstart/2hcp-2eks-2ec2
+source ../../scripts/setHCP-ConsulEnv-usw2.sh .
 
 # tail logs
 CONSUL_HTTP_SSL_VERIFY=false consul monitor -log-level debug -token ${CONSUL_HTTP_TOKEN} http-addr ${CONSUL_HTTP_ADDR//https:\/\/}
@@ -131,7 +120,6 @@ Using the domain name of your HCP Consul cluster will give you a random instance
 ## Clean Up
 Remove the Peering, fake-services, and Consul dataplanes from EKS for a clean environment.
 ```
-examples/apps-peer-server-def-def/peering/peer_east_to_west.sh destroy
 examples/apps-peer-server-def-def/fake-service/deploy-fakeservice-to-usw2-and-use1.sh destroy
 cd consul_helm_values
 terraform destroy -auto-approve

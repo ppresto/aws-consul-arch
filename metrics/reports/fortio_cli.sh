@@ -1,7 +1,7 @@
 #!/bin/bash
 SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
-RESULTS=/tmp/fortio.results.csv
-DURATION=2
+#RESULTS=/tmp/fortio.results.csv
+#DURATION=10
 RECOVERY_TIME=30
 PAYLOAD=""
 JSON=""
@@ -18,7 +18,7 @@ baseline_http() {
     for c in "${CONNECTIONS[@]}"
     do
         DATE=$(date '+%m%d%Y-%H%M%S')
-        REPORT="/tmp/$(echo ${Label}|sed s"/ /_/g")_${NAMESPACE}_${c}c_${DATE}.json"
+        REPORT="${FILE_PATH}/$(echo ${Label}|sed s"/ /_/g")_${NAMESPACE}_${c}c_${DATE}.json"
         echo "Running ${Label} for ${DURATION}s with $c connections in K8s ns $NAMESPACE"
         kubectl -n $NAMESPACE exec -i deploy/fortio-client -c fortio -- fortio load -qps ${QPS} -c ${c} -r .0001 -t ${DURATION}s -payload "${PAYLOAD}" -a -labels "${Label}" ${JSON} http://fortio-server-defaults:8080/echo > "${REPORT}"
         sleep $RECOVERY_TIME
@@ -40,7 +40,7 @@ baseline_grpc() {
     for c in "${CONNECTIONS[@]}"
     do
         DATE=$(date '+%m%d%Y-%H%M%S')
-        REPORT="/tmp/$(echo ${Label}|sed s"/ /_/g")_${NAMESPACE}_${c}c_${DATE}.json"
+        REPORT="${FILE_PATH}/$(echo ${Label}|sed s"/ /_/g")_${NAMESPACE}_${c}c_${DATE}.json"
         echo "Running ${Label} for ${DURATION}s with $c connections in K8s ns $NAMESPACE"
         kubectl -n $NAMESPACE exec -i deploy/fortio-client -c fortio -- fortio load -grpc -ping -qps 1000 -c $c -s 1 -r .0001 -t ${DURATION}s -payload "${PAYLOAD}" -a -labels "${Label}" ${JSON} fortio-server-defaults:8079 > "${REPORT}"
         sleep $RECOVERY_TIME
@@ -62,7 +62,7 @@ consul_http() {
     for c in "${CONNECTIONS[@]}"
     do
         DATE=$(date '+%m%d%Y-%H%M%S')
-        REPORT="/tmp/$(echo ${Label}|sed s"/ /_/g")_${NAMESPACE}_${c}c_${DATE}.json"
+        REPORT="${FILE_PATH}/$(echo ${Label}|sed s"/ /_/g")_${NAMESPACE}_${c}c_${DATE}.json"
         echo "Running ${Label} for ${DURATION}s with $c connections in K8s ns $NAMESPACE"
         kubectl -n $NAMESPACE exec -i deploy/fortio-client -c fortio -- fortio load -qps 1000 -c $c -r .0001 -t ${DURATION}s -payload "${PAYLOAD}" ${HEADERS} -a -labels "${Label}" ${JSON} http://fortio-server-defaults:8080/echo > "${REPORT}"
         PID=$!
@@ -86,7 +86,7 @@ consul_grpc() {
     for c in "${CONNECTIONS[@]}"
     do
         DATE=$(date '+%m%d%Y-%H%M%S')
-        REPORT="/tmp/$(echo ${Label}|sed s"/ /_/g")_${NAMESPACE}_${c}c_${DATE}.json"
+        REPORT="${FILE_PATH}/$(echo ${Label}|sed s"/ /_/g")_${NAMESPACE}_${c}c_${DATE}.json"
         echo "Running ${Label} for ${DURATION}s with $c connections in K8s ns $NAMESPACE"
         kubectl -n $NAMESPACE exec -i deploy/fortio-client -c fortio -- fortio load -grpc -ping -qps 1000 -c $c -s 1 -r .0001 -t ${DURATION}s -payload "${PAYLOAD}" -a -labels "${Label}" -json - fortio-server-defaults-grpc:8079 > "${REPORT}"
         sleep $RECOVERY_TIME
@@ -216,7 +216,7 @@ usage() {
     exit 1; 
 }
 
-while getopts "d:c:n:t:p:w:jh:q:" o; do
+while getopts "d:c:n:t:p:w:jh:q:f:" o; do
     case "${o}" in
         q)
             QPS=(${OPTARG})
@@ -229,6 +229,7 @@ while getopts "d:c:n:t:p:w:jh:q:" o; do
             if ! [[ ${CONNECTIONS} =~ ^[0-9]+$ ]]; then
                 usage
             fi
+            echo "Setting Connections to ${CONNECTIONS}"
             ;;
         d)
             DURATION="${OPTARG}"
@@ -259,12 +260,28 @@ while getopts "d:c:n:t:p:w:jh:q:" o; do
             HEADERS="-H ${OPTARG}"
             echo "Adding Headers: ${HEADERS}"
             ;;
+        f)
+            FILE_PATH="${OPTARG}"
+            if [[ -d $FILE_PATH ]]; then 
+                echo "Setting Reporting FILE_PATH to $FILE_PATH"
+            else
+                mkdir -p ${FILEPATH}
+                echo "$FILE_PATH Not Found.  Creating FILE_PATH $FILEPATH"
+            fi
+            ;;
         *)
             usage
             ;;
     esac
 done
 shift $((OPTIND-1))
+
+if [[ -z $FILE_PATH ]]; then
+    FILE_PATH="/tmp"
+    RESULTS="${FILE_PATH}/fortio.results.csv"
+else
+    RESULTS="${FILE_PATH}/fortio.results.csv"
+fi
 
 if [[ -z $DURATION ]]; then
     echo "Setting Run Duration to 10s"

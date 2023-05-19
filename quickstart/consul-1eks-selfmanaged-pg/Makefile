@@ -3,7 +3,7 @@
 
 OUTPUT=`terraform output -raw`
 
-all: infra-deploy eks-connect consul-install
+all: infra-deploy eks-connect consul-install metrics-install
 destroy: init metrics-clean consul-clean infra-clean
 
 fmt:
@@ -16,8 +16,7 @@ infra-deploy: init
 	@-terraform apply -auto-approve
 
 eks-connect:
-	@source "../../../scripts/kubectl_connect_eks.sh" .
-	@kubectl config use-context usw2-app1
+	@source "../../scripts/kubectl_connect_eks.sh" .
 	@kubectl cluster-info
 
 consul-install:
@@ -28,11 +27,19 @@ consul-install:
 	@echo "Token"
 	@kubectl -n consul get secrets consul-bootstrap-acl-token --template "{{ .data.token | base64decode }}"
 
-metrics-clean:
-	@-../../../../terraform-aws-azure-load-test/deploy/fortio-tests/deploy.sh destroy
-	@-../../../../terraform-aws-azure-load-test/deploy/deploy_helm.sh destroy
+metrics-install:
+	@../../metrics/deploy_helm.sh
+	@../../metrics/fortio-tests/deploy.sh
 
-consul-clean: metrics-clean
+run-fortio-tests:
+	@../../metrics/reports/parallel_http_tests.sh
+	@../../metrics/reports/parallel_grpc_tests.sh
+
+metrics-clean:
+	@-../../metrics/deploy_helm.sh delete
+	@-../../metrics/fortio-tests/deploy.sh delete
+
+consul-clean: eks-connect metrics-clean
 	@-terraform -chdir="consul_helm_values" destroy -auto-approve 
 
 infra-clean:

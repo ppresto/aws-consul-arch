@@ -1,6 +1,44 @@
 #!/bin/bash
 SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
+checkNodeLabels(){
+    label=""
+    nodes=$(kubectl get nodes -o json | jq -r '.items[].metadata.labels."kubernetes.io/hostname"')
+    for node in ${nodes}
+    do
+        test=$(kubectl get nodes $node --show-labels | grep -w "nodegroup=services")
+        if [[ $test != "" ]]; then
+            echo "Label Found. Deploying to nodeselector 'nodegroup=services'"
+            label="exists"
+            break
+        fi
+    done
 
+    if [[ $label != "exists" ]]; then
+        for node in ${nodes}
+        do
+            test=$(kubectl get nodes $node --show-labels | grep -w "nodegroup=default")
+            if [[ $test != "" ]]; then
+                kubectl label nodes $node nodegroup=default
+            fi
+        done
+        export PATCH=true  #disable nodeselector
+    fi
+}
+patch() {
+    if [[ $PATCH == true ]]; then
+        kubectl -n fortio-baseline patch deployment fortio-client --patch "$(cat ${SCRIPT_DIR}/default-nodeselector-patch.yaml)"
+        kubectl -n fortio-baseline patch deployment fortio-server-defaults --patch "$(cat ${SCRIPT_DIR}/default-nodeselector-patch.yaml)"
+
+        kubectl -n fortio-consul-default patch deployment fortio-client --patch "$(cat ${SCRIPT_DIR}/default-nodeselector-patch.yaml)"
+        kubectl -n fortio-consul-default patch deployment fortio-server-defaults --patch "$(cat ${SCRIPT_DIR}/default-nodeselector-patch.yaml)"
+
+        kubectl -n fortio-consul-150 patch deployment fortio-client --patch "$(cat ${SCRIPT_DIR}/default-nodeselector-patch.yaml)"
+        kubectl -n fortio-consul-150 patch deployment fortio-server-defaults --patch "$(cat ${SCRIPT_DIR}/default-nodeselector-patch.yaml)"
+
+        kubectl -n fortio-consul-logs patch deployment fortio-client --patch "$(cat ${SCRIPT_DIR}/default-nodeselector-patch.yaml)"
+        kubectl -n fortio-consul-logs patch deployment fortio-server-defaults --patch "$(cat ${SCRIPT_DIR}/default-nodeselector-patch.yaml)"
+    fi
+}
 deploy() {
     #kubectl config use-context usw2-app1
     kubectl create namespace fortio-consul-default
@@ -9,17 +47,15 @@ deploy() {
 
     kubectl apply -f ${SCRIPT_DIR}/baseline/init  # create ns fortio-baseline
     kubectl apply -f ${SCRIPT_DIR}/baseline
+
+    
     kubectl apply -f ${SCRIPT_DIR}/consul-default/init-consul-config
     kubectl apply -f ${SCRIPT_DIR}/consul-default
     kubectl apply -f ${SCRIPT_DIR}/consul-150/init-consul-config
     kubectl apply -f ${SCRIPT_DIR}/consul-150
     kubectl apply -f ${SCRIPT_DIR}/consul-logs/init-consul-config
     kubectl apply -f ${SCRIPT_DIR}/consul-logs
-    echo
-    echo "Waiting for fortio client pod to be ready..."
-    echo
-    kubectl -n fortio-consul-default wait --for=condition=ready pod -l app=fortio-client
-    echo
+
     echo 
     echo "grafana"
     echo "http://$(kubectl -n metrics get svc -l app.kubernetes.io/name=grafana -o json | jq -r '.items[].status.loadBalancer.ingress[].hostname'):3000"
@@ -52,4 +88,11 @@ if [[ ! -z $1 ]]; then
 else
     echo "Deploying Services"
     deploy
+    checkNodeLabels
+    patch
+    echo
+    echo "Waiting for fortio client pod to be ready..."
+    echo
+    kubectl -n fortio-consul-default wait --for=condition=ready pod -l app=fortio-client
+    echo
 fi

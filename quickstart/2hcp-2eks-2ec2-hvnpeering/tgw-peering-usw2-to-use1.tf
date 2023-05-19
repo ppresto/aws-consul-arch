@@ -86,7 +86,7 @@ resource "aws_ec2_transit_gateway_route" "usw2" {
 }
 
 module "route_add_usw2_to_use1" {
-  source = "../../../modules/aws_route_add"
+  source = "../../modules/aws_route_add"
   providers = {
     aws = aws.usw2
   }
@@ -97,7 +97,7 @@ module "route_add_usw2_to_use1" {
   depends_on             = [aws_ec2_transit_gateway_route.usw2]
 }
 module "route_add_use1_to_usw2" {
-  source = "../../../modules/aws_route_add"
+  source = "../../modules/aws_route_add"
   providers = {
     aws = aws.use1
   }

@@ -76,7 +76,7 @@ module "eks" {
   eks_managed_node_group_defaults = {
     ami_type       = "AL2_x86_64"
     disk_size      = 50
-    instance_types = ["t3.medium"]
+    instance_types = [var.instance_type]
 
     iam_role_additional_policies = {
       additional = data.aws_iam_policy.ebscsi.arn

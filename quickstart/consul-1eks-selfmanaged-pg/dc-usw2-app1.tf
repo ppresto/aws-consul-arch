@@ -202,7 +202,7 @@ module "eks-usw2" {
   providers = {
     aws = aws.usw2
   }
-  source                          = "../../../modules/aws_eks_cluster_selfmanaged"
+  source                          = "../../modules/aws_eks_cluster_selfmanaged"
   cluster_name                    = try(local.usw2["usw2-app1"].eks.cluster_name, local.name)
   cluster_version                 = try(local.usw2["usw2-app1"].eks.eks_cluster_version, var.eks_cluster_version)
   cluster_endpoint_private_access = try(local.usw2["usw2-app1"].eks.cluster_endpoint_private_access, true)
@@ -221,7 +221,7 @@ module "eks-usw2" {
 data "template_file" "eks_clients_usw2" {
   for_each = { for k, v in local.usw2 : k => v if contains(keys(v), "eks") }
 
-  template = file("${path.module}/../../templates/consul_helm_client.tmpl")
+  template = file("${path.module}/../templates/consul_helm_client.tmpl")
   vars = {
     region_shortname            = "usw2"
     cluster_name                = try(local.usw2[each.key].eks.cluster_name, local.name)

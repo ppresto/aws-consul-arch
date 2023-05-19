@@ -13,24 +13,25 @@ data "aws_caller_identity" "usw2" {
 locals {
   # US-WEST-2 DC Configuration
   usw2 = {
-    "usw2-app1" = {
+    "usw2-consul1" = {
       "vpc" = {
-        "name" : "${var.prefix}-usw2-app1"
-        "cidr" : "10.16.0.0/20",
-        "private_subnets" : ["10.16.1.0/24", "10.16.2.0/24", "10.16.3.0/24", "10.16.4.0/24"],
-        "public_subnets" : ["10.16.11.0/24", "10.16.12.0/24", "10.16.13.0/24"],
-        "routable_cidr_blocks" : ["10.16.0.0/20"]
+        "name" : "${var.prefix}-usw2-consul1"
+        "cidr" : "10.17.0.0/20",
+        "private_subnets" : ["10.17.1.0/24", "10.17.2.0/24", "10.17.3.0/24", "10.17.4.0/24"],
+        "public_subnets" : ["10.17.11.0/24", "10.17.12.0/24", "10.17.13.0/24"],
+        "routable_cidr_blocks" : ["10.17.0.0/20"]
       }
       "eks" = {
-        "cluster_name" : "${var.prefix}-usw2-app1",
+        "cluster_name" : "${var.prefix}-usw2-consul1",
         "cluster_version" : var.eks_cluster_version,
         "ec2_ssh_key" : var.ec2_key_pair_name,
         "cluster_endpoint_private_access" : true,
         "cluster_endpoint_public_access" : true,
-        "eks_min_size" : 1,
+        "eks_min_size" : 3,
         "eks_max_size" : 3,
         "eks_desired_size" : 3
-        #"service_ipv4_cidr" : "10.16.16.0/24" #Can't overlap with VPC CIDR
+        "eks_instance_type" : "m5.2xlarge" #"m6i.large", "c6i.large"
+        #"service_ipv4_cidr" : "10.17.16.0/24" #Can't overlap with VPC CIDR
       }
     }
   }
@@ -138,23 +139,6 @@ locals {
 
 }
 
-# Create HVN and HCP Consul Cluster if defined
-module "hcp_consul_usw2" {
-  providers = {
-    aws = aws.usw2
-  }
-  source         = "../modules/hcp_consul"
-  for_each       = { for k, v in local.usw2 : k => v if contains(keys(v), "hcp-consul") }
-  hvn_id         = try(local.usw2[each.key].hcp-consul.hvn_id, var.hvn_id)
-  cloud_provider = try(local.usw2[each.key].hcp-consul.cloud_provider, var.cloud_provider)
-  #region             = local.usw2[each.key].region
-  cidr_block         = try(local.usw2[each.key].hcp-consul.cidr_block, var.hvn_cidr_block)
-  cluster_id         = try(local.usw2[each.key].hcp-consul.cluster_id, var.cluster_id)
-  tier               = try(local.usw2[each.key].hcp-consul.tier, "development")
-  min_consul_version = try(local.usw2[each.key].hcp-consul.min_consul_version, var.min_consul_version)
-  public_endpoint    = true
-}
-
 # Create usw2 VPCs defined in local.usw2
 module "vpc-usw2" {
   # https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/latest
@@ -210,62 +194,60 @@ module "vpc-usw2" {
   }
 }
 
-# Create EKS cluster per VPC defined in local.usw2
 module "eks-usw2" {
   # https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/latest
   providers = {
     aws = aws.usw2
   }
-  source                          = "../modules/aws_eks_cluster_selfmanaged"
-  cluster_name                    = try(local.usw2["usw2-app1"].eks.cluster_name, local.name)
-  cluster_version                 = try(local.usw2["usw2-app1"].eks.eks_cluster_version, var.eks_cluster_version)
-  cluster_endpoint_private_access = try(local.usw2["usw2-app1"].eks.cluster_endpoint_private_access, true)
-  cluster_endpoint_public_access  = try(local.usw2["usw2-app1"].eks.cluster_endpoint_public_access, true)
-  cluster_service_ipv4_cidr       = try(local.usw2["usw2-app1"].eks.service_ipv4_cidr, "172.20.0.0/16")
-  min_size                        = try(local.usw2["usw2-app1"].eks.eks_min_size, var.eks_min_size)
-  max_size                        = try(local.usw2["usw2-app1"].eks.eks_max_size, var.eks_max_size)
-  desired_size                    = try(local.usw2["usw2-app1"].eks.eks_desired_size, var.eks_desired_size)
-  vpc_id                          = module.vpc-usw2["usw2-app1"].vpc_id
-  subnet_ids                      = module.vpc-usw2["usw2-app1"].private_subnets
+  source                          = "../../modules/aws_eks_cluster"
+  for_each                        = { for k, v in local.usw2 : k => v if contains(keys(v), "eks") }
+  cluster_name                    = try(local.usw2[each.key].eks.cluster_name, local.name)
+  cluster_version                 = try(local.usw2[each.key].eks.eks_cluster_version, var.eks_cluster_version)
+  cluster_endpoint_private_access = try(local.usw2[each.key].eks.cluster_endpoint_private_access, true)
+  cluster_endpoint_public_access  = try(local.usw2[each.key].eks.cluster_endpoint_public_access, true)
+  cluster_service_ipv4_cidr       = try(local.usw2[each.key].eks.service_ipv4_cidr, "172.20.0.0/16")
+  min_size                        = try(local.usw2[each.key].eks.eks_min_size, var.eks_min_size)
+  max_size                        = try(local.usw2[each.key].eks.eks_max_size, var.eks_max_size)
+  desired_size                    = try(local.usw2[each.key].eks.eks_desired_size, var.eks_desired_size)
+  instance_type                   = try(local.usw2[each.key].eks.eks_instance_type, null)
+  vpc_id                          = module.vpc-usw2[each.key].vpc_id
+  subnet_ids                      = module.vpc-usw2[each.key].private_subnets
   all_routable_cidrs              = local.all_routable_cidr_blocks_usw2
-  hcp_cidr                        = try([local.hvn_cidrs_map_usw2.hvn.cidr], [])
 }
 
 data "template_file" "eks_clients_usw2" {
   for_each = { for k, v in local.usw2 : k => v if contains(keys(v), "eks") }
 
-  template = file("${path.module}/templates/consul_helm_client.tmpl")
+  template = file("${path.module}/../templates/consul_helm_client.tmpl")
   vars = {
     region_shortname            = "usw2"
     cluster_name                = try(local.usw2[each.key].eks.cluster_name, local.name)
-    datacenter                  = try(module.hcp_consul_usw2[local.hvn_list_usw2[0]].datacenter, "dc1")
+    server_replicas             = try(local.usw2[each.key].eks.eks_desired_size, var.eks_desired_size)
+    datacenter                  = "dc1"
     release_name                = "consul-${each.key}"
-    consul_external_servers     = try(jsondecode(base64decode(module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_config_file)).retry_join[0], "INPUT_REQUIRED")
-    eks_cluster_endpoint        = module.eks-usw2.cluster_endpoint
+    consul_external_servers     = "NO_HCP_SERVERS"
+    eks_cluster_endpoint        = module.eks-usw2[each.key].cluster_endpoint
     consul_version              = var.consul_version
     consul_helm_chart_version   = var.consul_helm_chart_version
     consul_helm_chart_template  = var.consul_helm_chart_template
     consul_chart_name           = "consul"
-    consul_ca_file              = try(module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_ca_file, "")
-    consul_config_file          = try(module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_config_file, "")
-    consul_root_token_secret_id = try(module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_root_token_secret_id, "")
+    consul_ca_file              = ""
+    consul_config_file          = ""
+    consul_root_token_secret_id = ""
     partition                   = var.consul_partition
-    node_selector               = "nodetype: consul" #K8s node label to target deployment too.
+    node_selector               = "" #K8s node label to target deployment too.
   }
 }
 
 resource "local_file" "usw2" {
   for_each = { for k, v in local.usw2 : k => v if contains(keys(v), "eks") }
   content  = data.template_file.eks_clients_usw2[each.key].rendered
-  filename = "${path.module}/../consul_helm_values/auto-${local.usw2[each.key].eks.cluster_name}.tf"
+  filename = "${path.module}/consul_helm_values/auto-${local.usw2[each.key].eks.cluster_name}.tf"
 }
 
 output "usw2_regions" {
   value = { for k, v in local.usw2 : k => data.aws_region.usw2.name }
 }
-# output "usw2_regions" {
-#   value = { for k, v in local.usw2 : k => local.usw2[k].region }
-# }
 output "usw2_projects" { # Used by ./scripts/kubectl_connect_eks.sh to loop through Proj/Env and Auth to EKS clusters
   value = [for proj in sort(keys(local.usw2)) : proj]
 }
@@ -276,7 +258,7 @@ output "usw2_vpc_ids" {
 ### EKS
 output "usw2_eks_cluster_endpoints" {
   description = "Endpoint for your Kubernetes API server"
-  value       = { for k, v in local.usw2 : k => module.eks-usw2.cluster_endpoint if contains(keys(v), "eks") }
+  value       = { for k, v in local.usw2 : k => module.eks-usw2[k].cluster_endpoint if contains(keys(v), "eks") }
 }
 output "usw2_eks_cluster_names" {
   description = "The name/id of the EKS cluster. Will block on cluster creation until the cluster is really ready"

@@ -50,6 +50,11 @@ variable "desired_size" {
   type        = number
   default     = 3
 }
+variable "instance_type" {
+  description = "EC2 Instance Type"
+  type        = string
+  default     = "t3.medium"
+}
 variable "all_routable_cidrs" {
   description = "Allow other Internally routable CIDRs ingress access to cluster"
   type        = list(string)

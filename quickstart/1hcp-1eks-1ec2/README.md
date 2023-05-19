@@ -31,33 +31,33 @@ terraform apply -auto-approve
 ## Connect to EKS clusters
 If using the above terraform connect to EKS using `./scripts/kubectl_connect_eks.sh`.  Pass this script the path to the terraform state file used to provision the infrastructure.  The easiest way to run this script is by staying in the directory where you ran terraform.
 ```
-source ../../../scripts/kubectl_connect_eks.sh .
+source ../../scripts/kubectl_connect_eks.sh .
 ```
 This script connects to all EKS clusters and configures useful aliases shown in the output.
 
 ## Install AWS EKS Load Balancer Controller
 The AWS Load Balancer Controller is required to enable NLBs for both internal and external access.  NLBs are the best way to support Mesh Gateways or any EKS Load balancer resource that requires an internal IP.  The helm chart that will be used next to bootstrap the EKS clusters to Consul will use this controller to allocate an internal NLB for the mesh gateway running on EKS. Pass the directory with the terraform.tfstate file as a parameter.  The easiest way to run this script is by staying in the directory where you ran terraform.
 ```
-../../../scripts/install_awslb_controller.sh .
+../../scripts/install_awslb_controller.sh .
 ```
 This script was written outside of TF to overcome provider limitations and install the controller on multiple EKS clusters at once.  To set this up using terraform refer to comments in `modules/aws_eks_cluster/main.tf`.  If not using the above terraform review the script or AWS documentation to install the AWS LB Controller.
 
 ## Install Consul Dataplane in EKS
 The terraform above creates a new terraform file for each EKS cluster in `./consul_helm_values`.  Using Terraform deploy the consul dataplane to each remote EKS cluster.  During this terraform run a helm.values file will be generated which can be used for future upgrades, maint, or troubleshooting directly with helm.
 ```
-cd ../../../consul_helm_values
+cd consul_helm_values
 init
 terraform apply -auto-approve
 ```
 If helm is easier to use initially there are example dataplane.values.yaml in `./examples/apps-2vpc-dataplane-ap-def/helm_examples/` that can be quickly installed directly to your EKS clusters.
 
 ### UPDATE: Dataplane with CNI Enabled
-Procore's requirement was to use CNI.  I recommended we move to the privilated sidecar to minimize new moving parts because the iptable rules were appearing to not be set properly.  After building this solutin with HCP I believe CNI provides a much cleaner DNS solution that is leveraging the dataplanes GRPC port and requires no additional firewall rules or configurations.  Sorry for any confusion here!  I pivoted to enable cni in this repo.
+After building this solutin with HCP I believe CNI provides a much cleaner DNS solution that is leveraging the dataplanes GRPC port and requires no additional firewall rules or configurations.  Sorry for any confusion here!  I pivoted to enable cni in this repo.
 
 ## Login to HCP Consul
 If using the terraform above then run the following command from within the terraform directory.  This will update your existing environment with the information required to run consul locally as a CLI tool.
 ```
-source ../../../scripts/setHCP-ConsulEnv-usw2.sh .
+source ../../scripts/setHCP-ConsulEnv-usw2.sh .
 ```
 This script will also output the URL and root token you can use to login.
 
@@ -72,7 +72,7 @@ The script configures the following:
 
 From the terraform directory run the following command.
 ```
-../../../examples/apps-2vpc-dataplane-ap-def/fake-service/deploy.sh
+../../examples/apps-2vpc-dataplane-ap-def/fake-service/deploy.sh
 ```
 The script should output the Ingress URL for web. It might take a couple minutes before being available in DNS.  Once available, the fake service should show `web` accessing its upstream `api` across VPCs and EKS clusters.
 
@@ -87,15 +87,15 @@ The script configures the following:
 
 From the terraform directory run the following command.
 ```
-../../../examples/apps-2vpc-dataplane-ap-ns/fake-service/deploy.sh
+../../examples/apps-2vpc-dataplane-ap-ns/fake-service/deploy.sh
 ```
 The script should output the Ingress URL for web. It might take a couple minutes before being available in DNS.  Once available, the fake service should show `web` accessing its upstream `api` across namespaces, EKS clusters, and VPCs.
 
 ## IPTable Rules
-Based on our call, I added the `./examples/wbitt-multitool` deployment.  This privilaged container can show the iptables configured by Consul on the node.  Deploy it into the mesh, exec into it to run iptables, and output should look as follows:
+I added the `./examples/wbitt-multitool` deployment.  This privilaged container can show the iptables configured by Consul on the node.  Deploy it into the mesh, exec into it to run iptables, and output should look as follows:
 
 ```
-kubectl apply -f ../../../examples/multitool-consul.yaml
+kubectl apply -f ../../examples/multitool-consul.yaml
 kubectl exec -it deploy/network-multitool -- iptables -t nat -L
 ...
 

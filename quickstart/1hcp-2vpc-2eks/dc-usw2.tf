@@ -236,7 +236,7 @@ module "hcp_consul_usw2" {
   providers = {
     aws = aws.usw2
   }
-  source         = "../../../modules/hcp_consul"
+  source         = "../../modules/hcp_consul"
   for_each       = { for k, v in local.usw2 : k => v if contains(keys(v), "hcp-consul") }
   hvn_id         = try(local.usw2[each.key].hcp-consul.hvn_id, var.hvn_id)
   cloud_provider = try(local.usw2[each.key].hcp-consul.cloud_provider, var.cloud_provider)
@@ -328,7 +328,7 @@ module "tgw-usw2" {
 
 # Attach 1+ Transit Gateways to each VPC and create routes for the private subnets
 module "tgw_vpc_attach_usw2" {
-  source = "../../../modules/aws_tgw_vpc_attach"
+  source = "../../modules/aws_tgw_vpc_attach"
   providers = {
     aws = aws.usw2
   }
@@ -347,7 +347,7 @@ module "aws_hcp_tgw_attach_usw2" {
   providers = {
     aws = aws.usw2
   }
-  source                        = "../../../modules/aws_hcp_tgw_attach"
+  source                        = "../../modules/aws_hcp_tgw_attach"
   for_each                      = local.hvn_tgw_attachments_map_usw2
   ram_resource_share_name       = "${local.usw2[each.value.tgw_env].tgw.name}-ram"
   hvn_provider_account_id       = module.hcp_consul_usw2[each.value.hvn_env].provider_account_id
@@ -363,7 +363,7 @@ module "aws_hcp_tgw_attach_usw2" {
 
 # Create additional private routes between VPCs so they can see each other.
 module "route_add_usw2" {
-  source = "../../../modules/aws_route_add"
+  source = "../../modules/aws_route_add"
   providers = {
     aws = aws.usw2
   }
@@ -375,7 +375,7 @@ module "route_add_usw2" {
 }
 #Add private routes to public route table to support SSH from bastion host.
 module "route_public_add_usw2" {
-  source = "../../../modules/aws_route_add"
+  source = "../../modules/aws_route_add"
   providers = {
     aws = aws.usw2
   }
@@ -387,7 +387,7 @@ module "route_public_add_usw2" {
 }
 # Create static HVN route with local.usw2.usw2-shared.hcp-consul.cidr_block
 module "route_add_hcp_usw2" {
-  source = "../../../modules/aws_route_add"
+  source = "../../modules/aws_route_add"
   providers = {
     aws = aws.usw2
   }
@@ -404,7 +404,7 @@ module "eks-usw2" {
   providers = {
     aws = aws.usw2
   }
-  source                          = "../../../modules/aws_eks_cluster"
+  source                          = "../../modules/aws_eks_cluster"
   for_each                        = { for k, v in local.usw2 : k => v if contains(keys(v), "eks") }
   cluster_name                    = try(local.usw2[each.key].eks.cluster_name, local.name)
   cluster_version                 = try(local.usw2[each.key].eks.eks_cluster_version, var.eks_cluster_version)
@@ -425,7 +425,7 @@ module "hcp_consul_policy-usw2" {
     aws    = aws.usw2
     consul = consul.usw2
   }
-  source            = "../../../modules/hcp_consul_policy"
+  source            = "../../modules/hcp_consul_policy"
   for_each          = toset(local.ec2_service_list_usw2)
   consul_datacenter = module.hcp_consul_usw2[local.hvn_list_usw2[0]].datacenter
   consul_service    = each.key
@@ -436,7 +436,7 @@ module "hcp_consul_ec2_iam_auth_method-usw2" {
     aws    = aws.usw2
     consul = consul.usw2
   }
-  source                = "../../../modules/hcp_consul_ec2_iam_auth_method"
+  source                = "../../modules/hcp_consul_ec2_iam_auth_method"
   ServerIDHeaderValue   = join("", regex("http?s://(.*)", module.hcp_consul_usw2[local.hvn_list_usw2[0]].consul_private_endpoint_url))
   BoundIAMPrincipalARNs = [module.hcp_consul_ec2_iam_profile-usw2.instance_profile_arn]
 }
@@ -445,14 +445,14 @@ module "hcp_consul_ec2_iam_profile-usw2" {
   providers = {
     aws = aws.usw2
   }
-  source    = "../../../modules/hcp_consul_ec2_iam_profile"
+  source    = "../../modules/hcp_consul_ec2_iam_profile"
   role_name = "consul-usw2"
 }
 module "hcp_consul_ec2_client-usw2" {
   providers = {
     aws = aws.usw2
   }
-  source   = "../../../modules/hcp_consul_ec2_client"
+  source   = "../../modules/hcp_consul_ec2_client"
   for_each = local.ec2_map_usw2
 
   hostname                        = local.ec2_map_usw2[each.key].hostname
@@ -476,7 +476,7 @@ module "sg-consul-agents-usw2" {
   providers = {
     aws = aws.usw2
   }
-  source = "../../../modules/aws_sg_consul_agents"
+  source = "../../modules/aws_sg_consul_agents"
   #for_each              = local.usw2
   for_each = { for k, v in local.usw2 : k => v if contains(keys(v), "ec2") }
   #region                = local.usw2[each.key].region
@@ -492,7 +492,7 @@ module "sg-consul-agents-usw2" {
 #   providers = {
 #     aws = aws.usw2
 #   }
-#   source                = "../../../modules/aws_sg_consul_dataplane"
+#   source                = "../../modules/aws_sg_consul_dataplane"
 #   for_each              = { for k, v in local.usw2 : k => v if contains(keys(v), "eks") }
 #   security_group_create = true
 #   name_prefix           = "${each.key}-consul-dataplane-sg" #eks-cluster-sg-${prefix}-${each.key}
@@ -504,7 +504,7 @@ module "sg-consul-agents-usw2" {
 data "template_file" "eks_clients_usw2" {
   for_each = { for k, v in local.usw2 : k => v if contains(keys(v), "eks") }
 
-  template = file("${path.module}/../../templates/consul_helm_client.tmpl")
+  template = file("${path.module}/../templates/consul_helm_client.tmpl")
   vars = {
     region_shortname            = "usw2"
     cluster_name                = try(local.usw2[each.key].eks.cluster_name, local.name)

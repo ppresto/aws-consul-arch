@@ -1,4 +1,4 @@
-# Arch 1: Single EKS cluster with Placement Groups and self managed EKS node groups.
+# Single EKS cluster with Placement Groups and self managed EKS node groups.
 This configuration creates an AWS EKS cluster using placement groups and 3 Self Managed Node Groups. This is designed for performance and can be deployed with a monitoring stack for load testing.
 - default:  monitoring stack (prometheus/grafana)
 - consul:   Consul cluster
@@ -23,14 +23,14 @@ The AWS Load Balancer Controller can be enabled for NLB routing to support Mesh 
 ### Provision Infrastructure
 Use terraform to build infra
 ```
-cd quickstart/infra_examples/1eks-selfmanaged-pg
+cd quickstart/1eks-selfmanaged-pg
 terraform init
 terraform apply -auto-approve
 ```
 
 Connect to EKS using `scripts/kubectl_connect_eks.sh`.  Pass this script the path to the terraform state file used to provision the EKS cluster.  If cwd is ./1eks-selfmanaged-pg like above then this command would look like the following:
 ```
-source ../../../scripts/kubectl_connect_eks.sh .
+source ../../scripts/kubectl_connect_eks.sh .
 ```
 This script connects EKS and builds some useful aliases shown in the output.
 
@@ -45,7 +45,7 @@ After installing consul the helm.values used will be written to ./consul_helm_va
 ### Update Anonymous policy to support metrics
 Add agent read access to anonymous policy.  This allows Prometheus access to the /agent/metrics endpoint.  The following script requires auth to the EKS cluster running consul and that Consul be installed locally for the CLI.  This will connect to the EKS cluster running consul to setup your local shell env to use Consul CLI and update tne anonymous policy with agent "read".
 ```
-../../../scripts/setEKS-ConsulEnv-AnonPolicy.sh
+../../scripts/setEKS-ConsulEnv-AnonPolicy.sh
 ```
 
 ## Setup Monitoring Stack
