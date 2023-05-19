@@ -1,63 +1,55 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: fortio-client
-  namespace: fortio-consul-150
+  name:   fortio-server-defaults
+  namespace: fortio-consul-l7
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: fortio-client
-  namespace: fortio-consul-150
+  name:   fortio-server-defaults
+  namespace: fortio-consul-l7
 spec:
   selector:
-    app: fortio-client
+    app:   fortio-server-defaults
   ports:
-  - port: 8080
+  - name: http
+    port: 8080
     targetPort: 8080
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: fortio-consul-150
+  namespace: fortio-consul-l7
   labels:
-    app: fortio-client
-  name: fortio-client
+    app:   fortio-server-defaults
+  name:   fortio-server-defaults
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: fortio-client
+      app:   fortio-server-defaults
   template:
     metadata:
-      namespace: fortio-consul-150
+      namespace: fortio-consul-l7
       annotations:
         'consul.hashicorp.com/connect-inject': 'true'
         'consul.hashicorp.com/transparent-proxy': 'true'
         'consul.hashicorp.com/consul-envoy-proxy-concurrency': '2'
-        'consul.hashicorp.com/sidecar-proxy-cpu-limit': '500m' # 35% of a CPU
+        'consul.hashicorp.com/sidecar-proxy-cpu-limit': '500m' # 50% of a vCPU
         'consul.hashicorp.com/sidecar-proxy-cpu-request': '500m'
         'consul.hashicorp.com/sidecar-proxy-memory-limit': '100Mi'
         'consul.hashicorp.com/sidecar-proxy-memory-request': '100Mi'
       labels:
-        app: fortio-client
+        app:   fortio-server-defaults
     spec:
       containers:
-      - name: fortio
+      - name:   fortio-server-defaults
         image: fortio/fortio:latest_release
         env:       
         ports:
         - containerPort: 8080
           name: http-fortio
-        - containerPort: 8079
-          name: grpc-ping        
-        volumeMounts:
-        - name: reports
-          mountPath: /var/lib/fortio
-      volumes:
-      - name: reports
-        emptyDir:
-            medium: Memory
-      serviceAccountName: fortio-client
+      serviceAccountName:   fortio-server-defaults
       nodeSelector:
         nodegroup: services

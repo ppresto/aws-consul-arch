@@ -1,5 +1,6 @@
 #!/bin/bash
 SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
+
 nodeSelector="--set nodeSelector.nodegroup=default"
 # Target Metrics deployment to nodeSelector 'nodegroup=default'
 # If No nodes have the label 'nodegroup=default' then set this for all nodes.

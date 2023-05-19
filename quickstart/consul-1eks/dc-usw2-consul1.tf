@@ -29,7 +29,7 @@ locals {
         "cluster_endpoint_public_access" : true,
         "eks_min_size" : 3,
         "eks_max_size" : 3,
-        "eks_desired_size" : 3
+        "eks_desired_size" : 3             # Used to size consul cluster in helm values
         "eks_instance_type" : "m5.2xlarge" #"m6i.large", "c6i.large"
         #"service_ipv4_cidr" : "10.17.16.0/24" #Can't overlap with VPC CIDR
       }

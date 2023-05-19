@@ -1,8 +1,10 @@
 #!/bin/bash
 SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
 
-NAMESPACES=(fortio-consul-default fortio-consul-150 fortio-consul-logs)
+NAMESPACES=(fortio-consul-default fortio-consul-optimized fortio-consul-logs fortio-consul-l7)
 TEST_TYPE=(consul_http)
+# Only used in the consul-l7 test case, but adding header in all cases for simplicity.
+HEADER="MY_CUSTOM_REQ_HEADER:XXXXXXXXXXXXXX"
 
 #Run Baseline Test Cases
 baseline(){
@@ -11,13 +13,13 @@ baseline(){
     do
         if [[ ${type} =~ consul_http ]]; then
             echo "Running Test Type 'baseline_http' in namespace fortio-baseline with $c connections"
-            ${SCRIPT_DIR}/fortio_cli.sh  -j -t baseline_http -n fortio-baseline -d${DURATION} -w${RECOVERY_TIME} -c${c} -f ${FILE_PATH}
+            ${SCRIPT_DIR}/fortio_cli.sh  -j -t baseline_http -n fortio-baseline -k${K8S_CONTEXT} -d${DURATION} -w${RECOVERY_TIME} -c${c} -h ${HEADER} -f ${FILE_PATH}
             pid=$!
             wait $pid
             echo "Test completed (PID: $pid)"
         else
             echo echo "Running Test Type 'baseline_grpc' in namespace fortio-baseline with $c connections"
-            ${SCRIPT_DIR}/fortio_cli.sh  -j -t baseline_grpc -n fortio-baseline -d${DURATION} -w${RECOVERY_TIME} -c${c} -f ${FILE_PATH}
+            ${SCRIPT_DIR}/fortio_cli.sh  -j -t baseline_grpc -n fortio-baseline -k${K8S_CONTEXT} -d${DURATION} -w${RECOVERY_TIME} -c${c} -h ${HEADER} -f ${FILE_PATH}
             pid=$!
             wait $pid
         fi
@@ -33,7 +35,7 @@ run () {
             for ns in "${!NAMESPACES[@]}"
             do
                 echo "Running Test Type '${type}' in namespace ${NAMESPACES[$ns]} with $c connections"
-                ${SCRIPT_DIR}/fortio_cli.sh -j -t ${type} -n ${NAMESPACES[$ns]} -d ${DURATION} -w${RECOVERY_TIME} -c${c} -f ${FILE_PATH}
+                ${SCRIPT_DIR}/fortio_cli.sh -j -t ${type} -n ${NAMESPACES[$ns]} -k${K8S_CONTEXT} -d ${DURATION} -w${RECOVERY_TIME} -c${c} -h ${HEADER} -f ${FILE_PATH}
                 pid=$!
                 wait $pid
             done
@@ -43,13 +45,13 @@ run () {
 }
 
 usage() { 
-    echo "Usage: $0 [-c <#threads>] [-d <DURATION>] [-w <RECOVERY_TIME>] [-f <report_path>]" 1>&2; 
+    echo "Usage: $0 [-c <#threads>] [-d <DURATION>] [-k <K8S_CONTEXT>] [-f <report_path>]" 1>&2; 
     echo
     echo "Example: $0 -t consul_http -d 300 -c 32"
     exit 1; 
 }
 
-while getopts "d:c:n:t:p:w:jh:q:f:" o; do
+while getopts "d:c:n:t:p:w:jh:q:f:k:" o; do
     case "${o}" in
         c)
             CONNECTIONS=(${OPTARG})
@@ -57,6 +59,10 @@ while getopts "d:c:n:t:p:w:jh:q:f:" o; do
                 usage
             fi
             echo "Setting Connections to ${CONNECTIONS}"
+            ;;
+        k)
+            K8S_CONTEXT="${OPTARG}"
+            echo "Setting K8S_CONTEXT  to ${K8S_CONTEXT}"
             ;;
         d)
             DURATION="${OPTARG}"
@@ -102,6 +108,11 @@ fi
 if [[ -z $RECOVERY_TIME ]]; then
     RECOVERY_TIME=30
     echo "Setting Recovery Time of $RECOVERY_TIME between tests"
+fi
+
+if [[ -z $K8S_CONTEXT ]]; then
+    K8S_CONTEXT=$(kubectl config current-context)
+    echo "Setting K8S_CONTEXT to $K8S_CONTEXT"
 fi
 
 run

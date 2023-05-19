@@ -1,5 +1,8 @@
 #!/bin/bash
 SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
+
+# fortio deploy uses nodeselector (nodegroup=services) to isolate testing services.  Verify if this label isn't being used
+# to isolate workloads and apply a patch to create "nodegroup=default" if needed and patch service deployments to use it.
 checkNodeLabels(){
     label=""
     nodes=$(kubectl get nodes -o json | jq -r '.items[].metadata.labels."kubernetes.io/hostname"')
@@ -31,19 +34,27 @@ patch() {
 
         kubectl -n fortio-consul-default patch deployment fortio-client --patch "$(cat ${SCRIPT_DIR}/default-nodeselector-patch.yaml)"
         kubectl -n fortio-consul-default patch deployment fortio-server-defaults --patch "$(cat ${SCRIPT_DIR}/default-nodeselector-patch.yaml)"
+        kubectl -n fortio-consul-default patch deployment fortio-server-defaults-grpc --patch "$(cat ${SCRIPT_DIR}/default-nodeselector-patch.yaml)"
 
-        kubectl -n fortio-consul-150 patch deployment fortio-client --patch "$(cat ${SCRIPT_DIR}/default-nodeselector-patch.yaml)"
-        kubectl -n fortio-consul-150 patch deployment fortio-server-defaults --patch "$(cat ${SCRIPT_DIR}/default-nodeselector-patch.yaml)"
+        kubectl -n fortio-consul-optimized patch deployment fortio-client --patch "$(cat ${SCRIPT_DIR}/default-nodeselector-patch.yaml)"
+        kubectl -n fortio-consul-optimized patch deployment fortio-server-defaults --patch "$(cat ${SCRIPT_DIR}/default-nodeselector-patch.yaml)"
+        kubectl -n fortio-consul-optimized patch deployment fortio-server-defaults-grpc --patch "$(cat ${SCRIPT_DIR}/default-nodeselector-patch.yaml)"
 
         kubectl -n fortio-consul-logs patch deployment fortio-client --patch "$(cat ${SCRIPT_DIR}/default-nodeselector-patch.yaml)"
         kubectl -n fortio-consul-logs patch deployment fortio-server-defaults --patch "$(cat ${SCRIPT_DIR}/default-nodeselector-patch.yaml)"
+        kubectl -n fortio-consul-logs patch deployment fortio-server-defaults-grpc --patch "$(cat ${SCRIPT_DIR}/default-nodeselector-patch.yaml)"
+
+        kubectl -n fortio-consul-l7 patch deployment fortio-client --patch "$(cat ${SCRIPT_DIR}/default-nodeselector-patch.yaml)"
+        kubectl -n fortio-consul-l7 patch deployment fortio-server-defaults --patch "$(cat ${SCRIPT_DIR}/default-nodeselector-patch.yaml)"
+        kubectl -n fortio-consul-l7 patch deployment fortio-server-defaults-grpc --patch "$(cat ${SCRIPT_DIR}/default-nodeselector-patch.yaml)"
     fi
 }
 deploy() {
     #kubectl config use-context usw2-app1
     kubectl create namespace fortio-consul-default
-    kubectl create namespace fortio-consul-150
+    kubectl create namespace fortio-consul-optimized
     kubectl create namespace fortio-consul-logs
+    kubectl create namespace fortio-consul-l7
 
     kubectl apply -f ${SCRIPT_DIR}/baseline/init  # create ns fortio-baseline
     kubectl apply -f ${SCRIPT_DIR}/baseline
@@ -51,10 +62,12 @@ deploy() {
     
     kubectl apply -f ${SCRIPT_DIR}/consul-default/init-consul-config
     kubectl apply -f ${SCRIPT_DIR}/consul-default
-    kubectl apply -f ${SCRIPT_DIR}/consul-150/init-consul-config
-    kubectl apply -f ${SCRIPT_DIR}/consul-150
+    kubectl apply -f ${SCRIPT_DIR}/consul-optimized/init-consul-config
+    kubectl apply -f ${SCRIPT_DIR}/consul-optimized
     kubectl apply -f ${SCRIPT_DIR}/consul-logs/init-consul-config
     kubectl apply -f ${SCRIPT_DIR}/consul-logs
+    kubectl apply -f ${SCRIPT_DIR}/consul-l7/init-consul-config
+    kubectl apply -f ${SCRIPT_DIR}/consul-l7
 
     echo 
     echo "grafana"
@@ -72,13 +85,16 @@ delete() {
     kubectl delete -f ${SCRIPT_DIR}/consul-default/init-consul-config
     kubectl delete -f ${SCRIPT_DIR}/consul-logs
     kubectl delete -f ${SCRIPT_DIR}/consul-logs/init-consul-config
-    kubectl delete -f ${SCRIPT_DIR}/consul-150
-    kubectl delete -f ${SCRIPT_DIR}/consul-150/init-consul-config
+    kubectl delete -f ${SCRIPT_DIR}/consul-optimized
+    kubectl delete -f ${SCRIPT_DIR}/consul-optimized/init-consul-config
     kubectl delete -f ${SCRIPT_DIR}/baseline
     kubectl delete -f ${SCRIPT_DIR}/baseline/init
-    kubectl delete namespace fortio-consul-150
+    kubectl delete -f ${SCRIPT_DIR}/consul-l7
+    kubectl delete -f ${SCRIPT_DIR}/consul-l7/init-consul-config
+    kubectl delete namespace fortio-consul-optimized
     kubectl delete namespace fortio-consul-default
     kubectl delete namespace fortio-consul-logs
+    kubectl delete namespace fortio-consul-l7
 }
 
 #Cleanup if any param is given on CLI
