@@ -509,7 +509,7 @@ data "template_file" "eks_clients_usw2" {
 resource "local_file" "usw2" {
   for_each = { for k, v in local.usw2 : k => v if contains(keys(v), "eks") }
   content  = data.template_file.eks_clients_usw2[each.key].rendered
-  filename = "${path.module}/../consul_helm_values/auto-${local.usw2[each.key].eks.cluster_name}.tf"
+  filename = "${path.module}/consul_helm_values/auto-${local.usw2[each.key].eks.cluster_name}.tf"
 }
 
 output "usw2_regions" {

@@ -30,7 +30,7 @@ locals {
         "eks_min_size" : 3,
         "eks_max_size" : 3,
         "eks_desired_size" : 3
-        "eks_instance_type" : "m6i.large" #c6i.large
+        "eks_instance_type" : "m5.2xlarge" #"m6i.large", "c6i.large"
         #"service_ipv4_cidr" : "10.16.16.0/24" #Can't overlap with VPC CIDR
       }
     }
@@ -245,7 +245,7 @@ data "template_file" "eks_clients_usw2" {
 resource "local_file" "usw2" {
   for_each = { for k, v in local.usw2 : k => v if contains(keys(v), "eks") }
   content  = data.template_file.eks_clients_usw2[each.key].rendered
-  filename = "${path.module}/../../../consul_helm_values/auto-${local.usw2[each.key].eks.cluster_name}.tf"
+  filename = "${path.module}/consul_helm_values/auto-${local.usw2[each.key].eks.cluster_name}.tf"
 }
 
 output "usw2_regions" {

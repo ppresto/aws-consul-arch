@@ -1,5 +1,5 @@
 module "consul_${cluster_name}" {
-  source   = "../modules/helm_install_consul"
+  source   = "../../../../modules/helm_install_consul"
   providers = { aws = aws.${region_shortname} }
   release_name  = "${release_name}"
   chart_name         = "${consul_chart_name}"
@@ -8,7 +8,7 @@ module "consul_${cluster_name}" {
   consul_partition     = "${partition}"
   server_replicas      = "${server_replicas}"
   consul_version       = "${consul_version}"
-  consul_license       = file("../files/consul.lic")
+  consul_license       = file("../../../../files/consul.lic")
   consul_helm_chart_template = "${consul_helm_chart_template}"
   #consul_helm_chart_template  = "values-dataplane-hcp.yaml"
   #consul_helm_chart_template = "values-server.yaml"

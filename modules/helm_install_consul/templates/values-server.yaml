@@ -2,7 +2,7 @@ global:
   name: consul
   image: "hashicorp/consul-enterprise:${consul_version}"
   imageK8S: docker.mirror.hashicorp.services/hashicorp/consul-k8s-control-plane:${consul_helm_chart_version}
-  imageConsulDataplane: "hashicorp/consul-dataplane:1.0.0"
+  #imageConsulDataplane: "hashicorp/consul-dataplane:1.0.0"
   enableConsulNamespaces: true
   enterpriseLicense:
     secretName: 'consul-ent-license'
@@ -51,20 +51,20 @@ server:
     }
   resources:
     requests:
-      memory: "5844Mi" # 1461Mi is about 75% of 2GB Mem
+      memory: "1461Mi" # 75% of 2GB Mem
       cpu: "1000m"
     limits:
-      memory: "5844Mi"
+      memory: "1461Mi"
       cpu: "1000m"
 dns:
   enabled: true
   enableRedirection: true
 
+%{~ if node_selector != "" ~}
 webhookCertManager:
-  %{~ if node_selector != "" ~}
   nodeSelector: |
     ${node_selector}
-  %{~ endif ~}
+%{~ endif ~}
 
 connectInject:
   enabled: true

@@ -3,24 +3,17 @@
 
 OUTPUT=`terraform output -raw`
 
-all: infra-deploy eks-connect consul-install metrics-install fortio-install fortio-run-all
+all: infra-deploy eks-connect consul-install
 destroy: init metrics-clean consul-clean infra-clean
-fortio-run-all: fortio-run-baseline fortio-run-consul-100 fortio-run-consul-150 fortio-run-consul-logs
-	@-rm /tmp/*.json
 
 fmt:
 	@terraform fmt -recursive
 
-auth: 
-	@doormat login && eval $(doormat aws export -a aws_ppresto_test)
-
-init: fmt auth
+init: fmt
 	@terraform init
 
 infra-deploy: init
 	@-terraform apply -auto-approve
-	@sleep1
-	@terraform apply -auto-approve
 
 eks-connect:
 	@source "../../../scripts/kubectl_connect_eks.sh" .
@@ -28,41 +21,19 @@ eks-connect:
 	@kubectl cluster-info
 
 consul-install:
-	@terraform -chdir="../../../consul_helm_values" apply -auto-approve
+	@terraform -chdir="consul_helm_values" init
+	@terraform -chdir="consul_helm_values" apply -auto-approve
 	@echo "Login to Consul UI - https://"
 	@kubectl -n consul get svc consul-ui -o json | jq -r '.status.loadBalancer.ingress[].hostname'
 	@echo "Token"
 	@kubectl -n consul get secrets consul-bootstrap-acl-token --template "{{ .data.token | base64decode }}"
-
-metrics-install:
-	@if [[ ! -d ../../../../terraform-aws-azure-load-test ]]; then git clone https://github.com/ppresto/terraform-aws-azure-load-test.git ../../../../; fi
-	@../../../../terraform-aws-azure-load-test/deploy/deploy_helm.sh
-
-fortio-install:
-	@../../../../terraform-aws-azure-load-test/deploy/fortio-tests/deploy.sh
-
-fortio-run-baseline: auth
-	@-../../../../terraform-aws-azure-load-test/deploy/reports/run.sh  -j -t baseline_http -n fortio-baseline -d300 -w30
-	@-../../../../terraform-aws-azure-load-test/deploy/reports/run.sh  -j -t baseline_grpc -n fortio-baseline -d300 -w30
-
-fortio-run-consul-100: auth
-	@-../../../../terraform-aws-azure-load-test/deploy/reports/run.sh  -j -t consul_http -n fortio-consul-100 -d300 -w30
-	@-../../../../terraform-aws-azure-load-test/deploy/reports/run.sh  -j -t consul_grpc -n fortio-consul-100 -d300 -w30
-
-fortio-run-consul-150: auth
-	@-../../../../terraform-aws-azure-load-test/deploy/reports/run.sh  -j -t consul_http -n fortio-consul-150 -d300 -w30
-	@-../../../../terraform-aws-azure-load-test/deploy/reports/run.sh  -j -t consul_grpc -n fortio-consul-150 -d300 -w30
-
-fortio-run-consul-logs: auth
-	@-../../../../terraform-aws-azure-load-test/deploy/reports/run.sh  -j -t consul_http -n fortio-consul-logs -d300 -w30
-	@-../../../../terraform-aws-azure-load-test/deploy/reports/run.sh  -j -t consul_grpc -n fortio-consul-logs -d300 -w30
 
 metrics-clean:
 	@-../../../../terraform-aws-azure-load-test/deploy/fortio-tests/deploy.sh destroy
 	@-../../../../terraform-aws-azure-load-test/deploy/deploy_helm.sh destroy
 
 consul-clean: metrics-clean
-	@-terraform -chdir="../../../consul_helm_values" destroy -auto-approve 
+	@-terraform -chdir="consul_helm_values" destroy -auto-approve 
 
 infra-clean:
 	@terraform destroy -auto-approve 

@@ -35,7 +35,7 @@ This script was written outside of TF to overcome provider limitations and insta
 ### Install Consul
 When building the 2 EKS clusters, terraform generated a new tf config in `./consul_helm_values`.  Using terraform bootstrap both EKS clusters to HCP Consul.
 ```
-cd ../../../consul_helm_values
+cd consul_helm_values
 terraform init
 terraform apply -auto-approve
 ```
@@ -46,7 +46,7 @@ From the directory you created your initial infrastructure run the env scripts t
 * CONSUL_HTTP_ADDR
 * CONSUL_HTTP_TOKEN
 ```
-cd - #Go back to ../quickstart/infra_examples/2hcp-2eks-2ec2
+cd .. #Go back to ../quickstart/infra_examples/2hcp-2eks-2ec2
 source ../../../scripts/setHCP-ConsulEnv-usw2.sh  .
 ```
 Open a tab on your browser, cut/paste the URL, and login to the us-west-2 HCP Consul UI with the token.  

@@ -45,7 +45,7 @@ This script was written outside of TF to overcome provider limitations and insta
 ### Install Consul
 When building the 2 EKS clusters, terraform generated a new tf config in `./consul_helm_values`.  Using terraform bootstrap both EKS clusters to HCP Consul.
 ```
-cd ../../../consul_helm_values
+cd consul_helm_values
 terraform init
 terraform apply -auto-approve
 ```

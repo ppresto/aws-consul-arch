@@ -36,7 +36,7 @@ This script connects EKS and builds some useful aliases shown in the output.
 
 ## Install Consul
 ```
-cd ../../../consul_helm_values
+cd consul_helm_values
 terraform init
 terraform apply -auto-approve
 ```
@@ -45,36 +45,32 @@ After installing consul the helm.values used will be written to ./consul_helm_va
 ### Update Anonymous policy to support metrics
 Add agent read access to anonymous policy.  This allows Prometheus access to the /agent/metrics endpoint.  The following script requires auth to the EKS cluster running consul and that Consul be installed locally for the CLI.  This will connect to the EKS cluster running consul to setup your local shell env to use Consul CLI and update tne anonymous policy with agent "read".
 ```
-../scripts/setEKS-ConsulEnv-AnonPolicy.sh
+../../../scripts/setEKS-ConsulEnv-AnonPolicy.sh
 ```
 
 ## Setup Monitoring Stack
 Metrics gathering is currently being configured outside of this repo. Verify you are connected to your EKS cluster and then run the following commands to clone the Metrics Stack (prometheus, grafana, fortio) repo.
 ```
-cd ../.. # cd out of your current repo.
-git clone https://github.com/ppresto/terraform-aws-azure-load-test.git
+cd ../../../metrics
 ```
 
 Setup the Stack (Prometheus, Grafana)
 ```
-cd terraform-aws-azure-load-test
-deploy/deploy_helm.sh
+./deploy_helm.sh
 ```
 ### Fortio loadtests
 There are multiple test cases contained within a directory.
 * fortio-baseline
 * fortio-consul
 
-Deploy a single test use case
+Deploy fortio test cases
 ```
-cd fortio-baseline
-deploy_all.sh
+./fortio-tests/deploy.sh
 ```
 
 Undeploy the test use case by providing any value as a parameter (ex: delete)
 ```
-cd fortio-baseline
-deploy_all.sh delete
+./fortio-tests/deploy.sh delete
 ```
 
 
