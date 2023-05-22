@@ -1,8 +1,8 @@
 #!/bin/bash
 SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
-RESULTS=/tmp/fortio.results.csv
-DURATION=2
-RECOVERY_TIME=30
+#RESULTS=/tmp/fortio.results.csv
+#DURATION=10
+RECOVERY_TIME=0
 PAYLOAD=""
 JSON=""
 QPS=1000
@@ -18,9 +18,9 @@ baseline_http() {
     for c in "${CONNECTIONS[@]}"
     do
         DATE=$(date '+%m%d%Y-%H%M%S')
-        REPORT="/tmp/$(echo ${Label}|sed s"/ /_/g")_${NAMESPACE}_${c}c_${DATE}.json"
+        REPORT="${FILE_PATH}/$(echo ${Label}|sed s"/ /_/g")_${NAMESPACE}_${c}c_${DATE}.json"
         echo "Running ${Label} for ${DURATION}s with $c connections in K8s ns $NAMESPACE"
-        kubectl -n $NAMESPACE exec -i deploy/fortio-client -c fortio -- fortio load -qps ${QPS} -c ${c} -r .0001 -t ${DURATION}s -payload "${PAYLOAD}" -a -labels "${Label}" ${JSON} http://fortio-server-defaults:8080/echo > "${REPORT}"
+        kubectl -n $NAMESPACE --context ${K8S_CONTEXT} exec -i deploy/fortio-client -c fortio -- fortio load -qps ${QPS} -c ${c} -r .0001 -t ${DURATION}s -payload "${PAYLOAD}" -a -labels "${Label}" ${JSON} http://fortio-server-defaults:8080/echo > "${REPORT}"
         sleep $RECOVERY_TIME
         report $REPORT $DATE ${NAMESPACE}
     done
@@ -40,9 +40,9 @@ baseline_grpc() {
     for c in "${CONNECTIONS[@]}"
     do
         DATE=$(date '+%m%d%Y-%H%M%S')
-        REPORT="/tmp/$(echo ${Label}|sed s"/ /_/g")_${NAMESPACE}_${c}c_${DATE}.json"
+        REPORT="${FILE_PATH}/$(echo ${Label}|sed s"/ /_/g")_${NAMESPACE}_${c}c_${DATE}.json"
         echo "Running ${Label} for ${DURATION}s with $c connections in K8s ns $NAMESPACE"
-        kubectl -n $NAMESPACE exec -i deploy/fortio-client -c fortio -- fortio load -grpc -ping -qps 1000 -c $c -s 1 -r .0001 -t ${DURATION}s -payload "${PAYLOAD}" -a -labels "${Label}" ${JSON} fortio-server-defaults:8079 > "${REPORT}"
+        kubectl -n $NAMESPACE --context ${K8S_CONTEXT} exec -i deploy/fortio-client -c fortio -- fortio load -grpc -ping -qps ${QPS} -c $c -s 1 -r .0001 -t ${DURATION}s -payload "${PAYLOAD}" -a -labels "${Label}" ${JSON} fortio-server-defaults:8079 > "${REPORT}"
         sleep $RECOVERY_TIME
         report $REPORT $DATE ${NAMESPACE}
     done
@@ -62,9 +62,9 @@ consul_http() {
     for c in "${CONNECTIONS[@]}"
     do
         DATE=$(date '+%m%d%Y-%H%M%S')
-        REPORT="/tmp/$(echo ${Label}|sed s"/ /_/g")_${NAMESPACE}_${c}c_${DATE}.json"
+        REPORT="${FILE_PATH}/$(echo ${Label}|sed s"/ /_/g")_${NAMESPACE}_${c}c_${DATE}.json"
         echo "Running ${Label} for ${DURATION}s with $c connections in K8s ns $NAMESPACE"
-        kubectl -n $NAMESPACE exec -i deploy/fortio-client -c fortio -- fortio load -qps 1000 -c $c -r .0001 -t ${DURATION}s -payload "${PAYLOAD}" ${HEADERS} -a -labels "${Label}" ${JSON} http://fortio-server-defaults:8080/echo > "${REPORT}"
+        kubectl -n $NAMESPACE --context ${K8S_CONTEXT} exec -i deploy/fortio-client -c fortio -- fortio load -qps ${QPS} -c $c -r .0001 -t ${DURATION}s -payload "${PAYLOAD}" ${HEADERS} -a -labels "${Label}" ${JSON} http://fortio-server-defaults:8080/echo > "${REPORT}"
         PID=$!
         wait $PID
         sleep $RECOVERY_TIME
@@ -86,9 +86,9 @@ consul_grpc() {
     for c in "${CONNECTIONS[@]}"
     do
         DATE=$(date '+%m%d%Y-%H%M%S')
-        REPORT="/tmp/$(echo ${Label}|sed s"/ /_/g")_${NAMESPACE}_${c}c_${DATE}.json"
+        REPORT="${FILE_PATH}/$(echo ${Label}|sed s"/ /_/g")_${NAMESPACE}_${c}c_${DATE}.json"
         echo "Running ${Label} for ${DURATION}s with $c connections in K8s ns $NAMESPACE"
-        kubectl -n $NAMESPACE exec -i deploy/fortio-client -c fortio -- fortio load -grpc -ping -qps 1000 -c $c -s 1 -r .0001 -t ${DURATION}s -payload "${PAYLOAD}" -a -labels "${Label}" -json - fortio-server-defaults-grpc:8079 > "${REPORT}"
+        kubectl -n $NAMESPACE --context ${K8S_CONTEXT} exec -i deploy/fortio-client -c fortio -- fortio load -grpc -ping -qps ${QPS} -c $c -s 1 -r .0001 -t ${DURATION}s -payload "${PAYLOAD}" -a -labels "${Label}" -json - fortio-server-defaults-grpc:8079 > "${REPORT}"
         sleep $RECOVERY_TIME
         report $REPORT $DATE ${NAMESPACE}
     done
@@ -107,7 +107,7 @@ get_cpu_throttled(){
     else
         CONTAINER="consul-dataplane"
     fi
-    metric=$(kubectl -n consul exec -i consul-server-0 -- sh -c "export starttime=\$(date +'%Y-%m-%dT%H:%M:%SZ' -d@\"\$(( `date +%s`-${DURATION}))\") &&
+    metric=$(kubectl -n consul --context $K8S_CONTEXT exec -i deploy/consulcli -- sh -c "export starttime=\$(date +'%Y-%m-%dT%H:%M:%SZ' -d@\"\$(( `date +%s`-${DURATION}))\") &&
     export endtime=\$(date +'%Y-%m-%dT%H:%M:%SZ') &&
     curl -s prometheus-server.metrics/api/v1/query_range \
     --header 'Content-Type: application/x-www-form-urlencoded'  \
@@ -127,7 +127,7 @@ get_cpu_used(){
     else
         CONTAINER="consul-dataplane"
     fi
-    metric=$(kubectl -n consul exec -i consul-server-0 -- sh -c "export starttime=\$(date +'%Y-%m-%dT%H:%M:%SZ' -d@\"\$(( `date +%s`-${DURATION}))\") &&
+    metric=$(kubectl -n consul --context $K8S_CONTEXT exec -i deploy/consulcli -- sh -c "export starttime=\$(date +'%Y-%m-%dT%H:%M:%SZ' -d@\"\$(( `date +%s`-${DURATION}))\") &&
     export endtime=\$(date +'%Y-%m-%dT%H:%M:%SZ') &&
     curl -s prometheus-server.metrics/api/v1/query_range \
     --header 'Content-Type: application/x-www-form-urlencoded'  \
@@ -147,7 +147,7 @@ get_mem_used(){
     else
         CONTAINER="consul-dataplane"
     fi
-    metric=$(kubectl -n consul exec -i consul-server-0 -- sh -c "export starttime=\$(date +'%Y-%m-%dT%H:%M:%SZ' -d@\"\$(( `date +%s`-${DURATION}))\") &&
+    metric=$(kubectl -n consul --context $K8S_CONTEXT exec -i deploy/consulcli -- sh -c "export starttime=\$(date +'%Y-%m-%dT%H:%M:%SZ' -d@\"\$(( `date +%s`-${DURATION}))\") &&
     export endtime=\$(date +'%Y-%m-%dT%H:%M:%SZ') &&
     curl -s prometheus-server.metrics/api/v1/query \
     --header 'Content-Type: application/x-www-form-urlencoded'  \
@@ -194,14 +194,14 @@ report () {
 
         echo "Writing Results..."
         if [[ ! -f $RESULTS ]]; then
-            echo "Date,Name,Type,${NS},Duration,QPS,CPU_Throttled,CPU,Mem,Connections,P50_${Labels},P75_${Labels},P90_${Labels},P99_${Labels},P99.9_${Labels},Errors,Streams,Destination" > $RESULTS
+            echo "Date,Name,K8s-Context,Type,${NS},Duration,QPS,CPU_Throttled,CPU,Mem,Connections,P50_${Labels},P75_${Labels},P90_${Labels},P99_${Labels},P99.9_${Labels},Errors,Streams,Destination" > $RESULTS
         elif [[ ! $(cat $RESULTS | grep "${Labels}") ]]; then
-            echo "Date,Name,Type,${NS},Duration,QPS,CPU_Throttled,CPU,Mem,Connections,P50_${Labels},P75_${Labels},P90_${Labels},P99_${Labels},P99.9_${Labels},Errors,Streams,Destination" >> $RESULTS
+            echo "Date,Name,K8s-Context,Type,${NS},Duration,QPS,CPU_Throttled,CPU,Mem,Connections,P50_${Labels},P75_${Labels},P90_${Labels},P99_${Labels},P99.9_${Labels},Errors,Streams,Destination" >> $RESULTS
         fi
         if [[ $Destination == "null" ]]; then
             Destination=$URL
         fi
-        echo "$DATE,$Labels,$RunType,$NAMESPACE,$RequestedDuration,$RequestedQPS,${cpu_throttled},${cpu_last},${mem_last},$NumThreads,${p50},${p75},${p90},${p99},${p999},$Errors,$Streams,$Destination" >> $RESULTS
+        echo "$DATE,$Labels,$K8S_CONTEXT,$RunType,$NAMESPACE,$RequestedDuration,$RequestedQPS,${cpu_throttled},${cpu_last},${mem_last},$NumThreads,${p50},${p75},${p90},${p99},${p999},$Errors,$Streams,$Destination" >> $RESULTS
         echo "Metric Data - Memory: $mem_metric"
         echo "Metric Data - CPU: $cpu_metric"
         echo "Metric Data - CPU Throttled: $cpu_throttled_metric"
@@ -216,10 +216,10 @@ usage() {
     exit 1; 
 }
 
-while getopts "d:c:n:t:p:w:jh:q:" o; do
+while getopts "d:c:n:t:p:w:jh:q:f:k:" o; do
     case "${o}" in
         q)
-            QPS=(${OPTARG})
+            QPS="${OPTARG}"
             if ! [[ ${QPS} =~ ^[0-9]+$ ]]; then
                 usage
             fi
@@ -229,6 +229,7 @@ while getopts "d:c:n:t:p:w:jh:q:" o; do
             if ! [[ ${CONNECTIONS} =~ ^[0-9]+$ ]]; then
                 usage
             fi
+            echo "Setting Connections to ${CONNECTIONS}"
             ;;
         d)
             DURATION="${OPTARG}"
@@ -237,6 +238,10 @@ while getopts "d:c:n:t:p:w:jh:q:" o; do
         n)
             NAMESPACE="${OPTARG}"
             echo "Setting K8s Namespace to ${NAMESPACE}"
+            ;;
+        k)
+            K8S_CONTEXT="${OPTARG}"
+            echo "Setting K8S_CONTEXT  to ${K8S_CONTEXT}"
             ;;
         t)
             TEST=${OPTARG}
@@ -256,8 +261,21 @@ while getopts "d:c:n:t:p:w:jh:q:" o; do
             echo "Fortio will NOT save graphs in UI when this is enabled"
             ;;
         h)
-            HEADERS="-H ${OPTARG}"
-            echo "Adding Headers: ${HEADERS}"
+            if [[ -z ${OPTARG} || ${OPTARG} == "" ]]; then
+                echo "Skipping Header Injection"
+            else
+                HEADERS="-H ${OPTARG}"
+                echo "Adding Headers: ${HEADERS}"
+            fi
+            ;;
+        f)
+            FILE_PATH="${OPTARG}"
+            if [[ -d $FILE_PATH ]]; then 
+                echo "Setting Reporting FILE_PATH to $FILE_PATH"
+            else
+                mkdir -p ${FILEPATH}
+                echo "$FILE_PATH Not Found.  Creating FILE_PATH $FILEPATH"
+            fi
             ;;
         *)
             usage
@@ -266,10 +284,32 @@ while getopts "d:c:n:t:p:w:jh:q:" o; do
 done
 shift $((OPTIND-1))
 
-if [[ -z $DURATION ]]; then
-    echo "Setting Run Duration to 10s"
-    DURATION=10
+if [[ -z $FILE_PATH ]]; then
+    FILE_PATH="/tmp"
+    RESULTS="${FILE_PATH}/fortio.results.csv"
+else
+    RESULTS="${FILE_PATH}/fortio.results.csv"
 fi
+
+if [[ -z $K8S_CONTEXT ]]; then
+    K8S_CONTEXT=$(kubectl config current-context)
+    echo "Setting K8S_CONTEXT to $K8S_CONTEXT"
+fi
+if [[ -z $DURATION ]]; then
+    DURATION=10
+    echo "Setting Run Duration to default: $DURATION sec"
+fi
+if [[ -z $QPS ]]; then
+    QPS=1000
+    echo "Setting default QPS to $QPS"
+else
+    echo "Setting QPS to $QPS"
+fi
+
+# if [[ -z $DURATION ]]; then
+#     echo "Setting Run Duration to default 10s"
+#     DURATION=10
+# fi
 
 if [[ -z $TEST ]]; then
     echo "Running Default HTTP Test: consul_http in k8s namespace fortio-consul"

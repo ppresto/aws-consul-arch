@@ -5,7 +5,7 @@ CUR_SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
 
 # Setup Env
 function meshdefaults () {
-  source ${CUR_SCRIPT_DIR}/../../../scripts/setHCP-ConsulEnv-use1.sh ${CUR_SCRIPT_DIR}/../../../quickstart/infra_examples/2hcp-2eks-2ec2-hvnpeering/
+  source ${CUR_SCRIPT_DIR}/../../../scripts/setHCP-ConsulEnv-use1.sh ${CUR_SCRIPT_DIR}/../../../quickstart/2hcp-2eks-2ec2-hvnpeering/
 # Configure Mesh defaults
   cat >/tmp/mesh-usw2.json <<-EOF
 {
@@ -29,7 +29,7 @@ EOF
   # Read Configuration
   curl --header "X-Consul-Token: ${CONSUL_HTTP_TOKEN}" ${CONSUL_HTTP_ADDR}/v1/config/mesh/mesh | jq -r
  
- source ${CUR_SCRIPT_DIR}/../../../scripts/setHCP-ConsulEnv-use1.sh ${CUR_SCRIPT_DIR}/../../../quickstart/infra_examples/2hcp-2eks-2ec2-hvnpeering/
+ source ${CUR_SCRIPT_DIR}/../../../scripts/setHCP-ConsulEnv-use1.sh ${CUR_SCRIPT_DIR}/../../../quickstart/2hcp-2eks-2ec2-hvnpeering/
 # Configure Mesh defaults
   cat >/tmp/mesh-use1.json <<-EOF
 {
@@ -59,7 +59,7 @@ function setup () {
   #
   ### East DC: presto-cluster-use1
   #
-  source ${CUR_SCRIPT_DIR}/../../../scripts/setHCP-ConsulEnv-use1.sh ${CUR_SCRIPT_DIR}/../../../quickstart/infra_examples/2hcp-2eks-2ec2-hvnpeering/
+  source ${CUR_SCRIPT_DIR}/../../../scripts/setHCP-ConsulEnv-use1.sh ${CUR_SCRIPT_DIR}/../../../quickstart/2hcp-2eks-2ec2-hvnpeering/
   kubectl config use-context use1-app1
 
   # # Verify Peering through MG
@@ -118,10 +118,10 @@ function remove () {
     kubectl delete -f ${CUR_SCRIPT_DIR}/exportedServices_presto-cluster-use1-default.yaml
     kubectl delete -f ${CUR_SCRIPT_DIR}/peering-acceptor-east.yaml
 
-    source ${CUR_SCRIPT_DIR}/../../../scripts/setHCP-ConsulEnv-use1.sh ${CUR_SCRIPT_DIR}/../../../quickstart/infra_examples/2hcp-2eks-2ec2-hvnpeering/
+    source ${CUR_SCRIPT_DIR}/../../../scripts/setHCP-ConsulEnv-use1.sh ${CUR_SCRIPT_DIR}/../../../quickstart/2hcp-2eks-2ec2-hvnpeering/
     curl --request DELETE --header "X-Consul-Token: ${CONSUL_HTTP_TOKEN}" ${CONSUL_HTTP_ADDR}/v1/config/mesh/mesh
 
-    source ${CUR_SCRIPT_DIR}/../../../scripts/setHCP-ConsulEnv-use1.sh ${CUR_SCRIPT_DIR}/../../../quickstart/infra_examples/2hcp-2eks-2ec2-hvnpeering/
+    source ${CUR_SCRIPT_DIR}/../../../scripts/setHCP-ConsulEnv-use1.sh ${CUR_SCRIPT_DIR}/../../../quickstart/2hcp-2eks-2ec2-hvnpeering/
     curl --request DELETE --header "X-Consul-Token: ${CONSUL_HTTP_TOKEN}" ${CONSUL_HTTP_ADDR}/v1/config/mesh/mesh
 }
 

@@ -12,6 +12,10 @@
 # example code
 **/auto-*.tf
 **/auto-*.yaml
+
+# reports
+**/reports/*
+
 # Crash log files
 crash.log
 crash.*.log

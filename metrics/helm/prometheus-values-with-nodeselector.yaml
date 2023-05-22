@@ -1,7 +1,7 @@
 ---
 global:
-  scrape_interval:  3s
-  scrape_timeout: 5s
+  scrape_interval:  5s
+  scrape_timeout: 10s
 prometheusSpec:
   overrideHonorLabels: true
 server:
