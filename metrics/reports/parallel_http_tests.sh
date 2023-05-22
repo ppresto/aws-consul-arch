@@ -14,13 +14,13 @@ baseline(){
     do
         if [[ ${type} =~ consul_http ]]; then
             echo "Running Test Type 'baseline_http' in namespace fortio-baseline with $c connections"
-            nohup ${SCRIPT_DIR}/fortio_cli.sh  -j -t baseline_http -n fortio-baseline -k${K8S_CONTEXT} -d${DURATION} -w${WAIT_PERIOD} -c${c} -h ${HEADER} -f ${FILE_PATH} &
+            nohup ${SCRIPT_DIR}/fortio_cli.sh  -j -t baseline_http -n fortio-baseline -k${K8S_CONTEXT} -q${QPS} -d${DURATION} -w${WAIT_PERIOD} -c${c} -h ${HEADER} -f ${FILE_PATH} &
             pid=$!
             wait $pid
             echo "Test completed (PID: $pid)"
         else
             echo echo "Running Test Type 'baseline_grpc' in namespace fortio-baseline with $c connections"
-            nohup ${SCRIPT_DIR}/fortio_cli.sh  -j -t baseline_grpc -n fortio-baseline -k${K8S_CONTEXT} -d${DURATION} -w${WAIT_PERIOD} -c${c} -h ${HEADER} -f ${FILE_PATH} &
+            nohup ${SCRIPT_DIR}/fortio_cli.sh  -j -t baseline_grpc -n fortio-baseline -k${K8S_CONTEXT} -q${QPS} -d${DURATION} -w${WAIT_PERIOD} -c${c} -h ${HEADER} -f ${FILE_PATH} &
             pid=$!
             wait $pid
         fi
@@ -38,7 +38,7 @@ run () {
             for ns in "${!NAMESPACES[@]}"
             do
                 echo "Running Test Type '${type}' in namespace ${NAMESPACES[$ns]} with $c connections"
-                nohup ${SCRIPT_DIR}/fortio_cli.sh -j -t ${type} -n ${NAMESPACES[$ns]} -k${K8S_CONTEXT} -d ${DURATION} -w${WAIT_PERIOD} -c${c}  -h ${HEADER} -f ${FILE_PATH} &
+                nohup ${SCRIPT_DIR}/fortio_cli.sh -j -t ${type} -n ${NAMESPACES[$ns]} -q${QPS} -k${K8S_CONTEXT} -d ${DURATION} -w${WAIT_PERIOD} -c${c}  -h ${HEADER} -f ${FILE_PATH} &
                 pids[${ns}]=$!
             done
             baseline ${c}
@@ -59,6 +59,12 @@ usage() {
 
 while getopts "d:c:n:t:p:w:jh:q:f:k:" o; do
     case "${o}" in
+        q)
+            QPS="${OPTARG}"
+            if ! [[ ${QPS} =~ ^[0-9]+$ ]]; then
+                usage
+            fi
+            ;;
         c)
             CONNECTIONS=(${OPTARG})
             if ! [[ ${CONNECTIONS} =~ ^[0-9]+$ ]]; then
@@ -102,6 +108,10 @@ fi
 if [[ -z $CONNECTIONS ]]; then
     CONNECTIONS=(2 4 8 16 32 64)
     echo "Setting Connections to ${CONNECTIONS[@]}"
+fi
+
+if [[ -z $QPS ]]; then
+    QPS=1000
 fi
 
 if [[ -z $DURATION ]]; then

@@ -29,6 +29,7 @@ consul-install:
 	@kubectl -n consul get svc consul-ui -o json | jq -r '.status.loadBalancer.ingress[].hostname'
 	@echo "Token"
 	@kubectl -n consul get secrets consul-bootstrap-acl-token --template "{{ .data.token | base64decode }}"
+	@echo
 
 metrics-install:
 	@../../metrics/deploy_helm.sh
@@ -41,9 +42,11 @@ run-fortio-tests:
 run-fortio-tests-parallel:
 	@../../metrics/reports/parallel_http_tests.sh -k ${K8S_CONTEXT} -f ./reports
 	@../../metrics/reports/parallel_grpc_tests.sh -k ${K8S_CONTEXT} -f ./reports
+run-fortio-tests-demo:
+	@../../metrics/reports/parallel_http_tests.sh -k ${K8S_CONTEXT} -f ./reports -c2 -d600 -q100
 
 metrics-clean:
-	@-../../metrics/deploy_helm.sh delete
+	@-../../metrics/deploy_helm.sh -d
 	@-../../metrics/fortio-tests/deploy.sh delete
 
 consul-clean: eks-connect metrics-clean

@@ -1,4 +1,4 @@
-# AWS Consul - Prometheus-Grafana-Metrics
+# AWS Consul - Deploy Metrics Stack Prometheus-Grafana-Fortio
 
 ## PreReq
 * Provision EKS Cluster and connect
@@ -12,20 +12,20 @@ Current Monitoring Stack:
 * grafana
 
 ```
-./deploy_helm.sh
+metrics/deploy_helm.sh
 ```
 
-## Deploy Fortio
+## Deploy Fortio for load testing
 There are multiple test cases contained within the `fortio-tests` directory.
 
 Deploy fortio test cases
 ```
-./fortio-tests/deploy.sh
+metrics/fortio-tests/deploy.sh
 ```
 
 Undeploy test cases by providing any value as a parameter (ex: delete)
 ```
-./fortio-tests/deploy.sh delete
+metrics/fortio-tests/deploy.sh delete
 ```
 
 ## Run Fortio Tests
@@ -52,6 +52,7 @@ Runs all test cases in sequence.
 * fortio-consul-logs
 * fortio-consul-l7
 This script will use your current k8s context for 6 different runs on each test case in order.  Each run uses a higher # of concurrent connections or threads (2, 4, 8, 16, 32, 64).  The default test duration is 300 seconds per test.  This gives the most accurate results and takes ~ 3h.
+
 ## Run Fortio Test using fortio_cli.sh
 Fortio test cases are all stored in their own K8s namespace.
 Namespace Examples
@@ -65,7 +66,7 @@ Each test case supports two types of tests
 * consul_grpc
 
 ### Run a single HTTP performance test 
-* -k k8s-context to override current-context.
+* -k k8s-context to override current-context
 * -d 10 second during
 * -c 2 connections
 * -w 0 no recovery time b/w tests 
@@ -74,18 +75,18 @@ Each test case supports two types of tests
 
 `fortio-consul-optimized` has configured the dataplane with more cpu and memory then `fortio-consul-default` to support more conncurrent connections.  Use either test case to run a quick HTTP performance test.
 ```
-fortio_cli.sh -j -t consul_http -n fortio-consul-optimized -k usw2-app1 -d 10 -w 0 -c2 -f /tmp
+metrics/reports/fortio_cli.sh -j -t consul_http -n fortio-consul-optimized -k usw2-app1 -d 10 -w 0 -c2 -f /tmp
 ```
 
 single GRPC test
 ```
-fortio_cli.sh -j -t consul_grpc -n fortio-consul-optimized -d 10 -w0 -c2 -f /tmp
+metrics/reports/fortio_cli.sh -j -t consul_grpc -n fortio-consul-optimized -d 10 -w0 -c2 -f /tmp
 ```
 
 ### Run a single test and use fortio UI to view results
 By removing the -j option the report will not be written to stdout and live within the fortio-client container.
 ```
-fortio_cli.sh -t consul_http -n fortio-consul-optimized -d 10 -w 0 -c2
+metrics/reports/fortio_cli.sh -t consul_http -n fortio-consul-optimized -d 10 -w 0 -c2
 ```
 Once the test completes open the fortio UI in your browser.  
 ```
@@ -102,7 +103,7 @@ The `fortio-consul-logs` test case sets proxy-defaults to enable the envoy acces
 
 Tab 1: Run successful test with correct header
 ```
-fortio_cli.sh -j -t consul_http -n fortio-consul-l7 -d 10 -w 0 -c2 -h "MY_CUSTOM_REQ_HEADER:Value" -f /tmp
+metrics/reports/fortio_cli.sh -j -t consul_http -n fortio-consul-l7 -d 10 -w 0 -c2 -h "MY_CUSTOM_REQ_HEADER:Value" -f /tmp
 ```
 
 Tab 2: Tail envoy access log
@@ -114,9 +115,11 @@ Look for the `MY_CUSTOM_REQ_HEADER`, and verify you see a successful response `"
 
 Next, go back to Tab 1 and run a failed test using a bad header.
 ```
-fortio_cli.sh -j -t consul_http -n fortio-consul-l7 -d 10 -w 0 -c2 -h "MY_BAD_HEADER:Value" -f /tmp
+metrics/reports/fortio_cli.sh -j -t consul_http -n fortio-consul-l7 -d 10 -w 0 -c2 -h "MY_BAD_HEADER:Value" -f /tmp
 ```
 While running this test, watch the envoy access logs for a permission denied response `"response_code":403`.  The requests to look for are coming from `"user_agent":"fortio.org/fortio-1.54.2"`
+
+
 ### Fortio Notes
 
 Reports
@@ -150,3 +153,17 @@ UDP
 fortio load -qps -1 -n 100000 udp://localhost:8078/
 ```
 
+Run fortio HTTP load test directly against pod
+```
+kubectl exec -it fortio-client-6b78f9c56c-hxzjk -- fortio load -qps 100 -c 10 -r .0001 -t 3s -labels "http test" http://fortio-server-defaults:8080/echo
+```
+
+Run fortio GRPC load test directly against pod
+```
+kubectl exec -it fortio-client-6b78f9c56c-hxzjk -- fortio load -grpc -ping -qps 100 -c 10 -r .0001 -t 3s -labels "grpc test" fortio-server-defaults:8079
+```
+
+run curl (add injector)
+```
+kubectl run -i --rm --restart=Never dummy --image=dockerqa/curl:ubuntu-trusty --command -- curl --silent httpbin:8000/html
+```

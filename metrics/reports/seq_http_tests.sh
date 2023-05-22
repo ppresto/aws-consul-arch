@@ -77,7 +77,7 @@ while getopts "d:c:n:t:p:w:jh:q:f:k:" o; do
             if [[ -d $FILE_PATH ]]; then 
                 echo "Setting Reporting FILE_PATH to $FILE_PATH"
             else
-                mkdir -p ${FILEPATH}
+                mkdir -p ${FILE_PATH}
                 echo "$FILE_PATH Not Found.  Creating FILE_PATH $FILEPATH"
             fi
             ;;

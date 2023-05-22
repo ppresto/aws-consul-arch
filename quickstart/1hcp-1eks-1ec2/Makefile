@@ -1,7 +1,8 @@
 .PHONY: all init deploy destroy fmt clean
 .PHONY: consul-install awslb fake-service
 
-K8S_CONTEXT=`terraform output -json usw2_projects | jq -r '.[]'`
+K8S_CONTEXT=`terraform output -json usw2_projects | jq -r '.[0]'`
+CONSUL_UI=`terraform output -raw usw2_consul_private_endpoint_url`
 
 all: infra-deploy eks-connect awslb consul-install metrics-install run-fortio-tests
 destroy: consul-clean infra-clean
@@ -28,13 +29,9 @@ awslb:
 consul-install:
 	@terraform -chdir="consul_helm_values" init
 	@terraform -chdir="consul_helm_values" apply -auto-approve
-	@echo "Login to Consul UI - https://"
-	@kubectl -n consul get svc consul-ui -o json | jq -r '.status.loadBalancer.ingress[].hostname'
-	@echo "Token"
-	@kubectl -n consul get secrets consul-bootstrap-acl-token --template "{{ .data.token | base64decode }}"
 
 metrics-install:
-	@../../metrics/deploy_helm.sh
+	@../../metrics/deploy_helm.sh -c ${CONSUL_UI}
 	@../../metrics/fortio-tests/deploy.sh
 
 run-fortio-tests:

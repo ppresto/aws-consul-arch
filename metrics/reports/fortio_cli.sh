@@ -42,7 +42,7 @@ baseline_grpc() {
         DATE=$(date '+%m%d%Y-%H%M%S')
         REPORT="${FILE_PATH}/$(echo ${Label}|sed s"/ /_/g")_${NAMESPACE}_${c}c_${DATE}.json"
         echo "Running ${Label} for ${DURATION}s with $c connections in K8s ns $NAMESPACE"
-        kubectl -n $NAMESPACE --context ${K8S_CONTEXT} exec -i deploy/fortio-client -c fortio -- fortio load -grpc -ping -qps 1000 -c $c -s 1 -r .0001 -t ${DURATION}s -payload "${PAYLOAD}" -a -labels "${Label}" ${JSON} fortio-server-defaults:8079 > "${REPORT}"
+        kubectl -n $NAMESPACE --context ${K8S_CONTEXT} exec -i deploy/fortio-client -c fortio -- fortio load -grpc -ping -qps ${QPS} -c $c -s 1 -r .0001 -t ${DURATION}s -payload "${PAYLOAD}" -a -labels "${Label}" ${JSON} fortio-server-defaults:8079 > "${REPORT}"
         sleep $RECOVERY_TIME
         report $REPORT $DATE ${NAMESPACE}
     done
@@ -64,7 +64,7 @@ consul_http() {
         DATE=$(date '+%m%d%Y-%H%M%S')
         REPORT="${FILE_PATH}/$(echo ${Label}|sed s"/ /_/g")_${NAMESPACE}_${c}c_${DATE}.json"
         echo "Running ${Label} for ${DURATION}s with $c connections in K8s ns $NAMESPACE"
-        kubectl -n $NAMESPACE --context ${K8S_CONTEXT} exec -i deploy/fortio-client -c fortio -- fortio load -qps 1000 -c $c -r .0001 -t ${DURATION}s -payload "${PAYLOAD}" ${HEADERS} -a -labels "${Label}" ${JSON} http://fortio-server-defaults:8080/echo > "${REPORT}"
+        kubectl -n $NAMESPACE --context ${K8S_CONTEXT} exec -i deploy/fortio-client -c fortio -- fortio load -qps ${QPS} -c $c -r .0001 -t ${DURATION}s -payload "${PAYLOAD}" ${HEADERS} -a -labels "${Label}" ${JSON} http://fortio-server-defaults:8080/echo > "${REPORT}"
         PID=$!
         wait $PID
         sleep $RECOVERY_TIME
@@ -88,7 +88,7 @@ consul_grpc() {
         DATE=$(date '+%m%d%Y-%H%M%S')
         REPORT="${FILE_PATH}/$(echo ${Label}|sed s"/ /_/g")_${NAMESPACE}_${c}c_${DATE}.json"
         echo "Running ${Label} for ${DURATION}s with $c connections in K8s ns $NAMESPACE"
-        kubectl -n $NAMESPACE --context ${K8S_CONTEXT} exec -i deploy/fortio-client -c fortio -- fortio load -grpc -ping -qps 1000 -c $c -s 1 -r .0001 -t ${DURATION}s -payload "${PAYLOAD}" -a -labels "${Label}" -json - fortio-server-defaults-grpc:8079 > "${REPORT}"
+        kubectl -n $NAMESPACE --context ${K8S_CONTEXT} exec -i deploy/fortio-client -c fortio -- fortio load -grpc -ping -qps ${QPS} -c $c -s 1 -r .0001 -t ${DURATION}s -payload "${PAYLOAD}" -a -labels "${Label}" -json - fortio-server-defaults-grpc:8079 > "${REPORT}"
         sleep $RECOVERY_TIME
         report $REPORT $DATE ${NAMESPACE}
     done
@@ -107,7 +107,7 @@ get_cpu_throttled(){
     else
         CONTAINER="consul-dataplane"
     fi
-    metric=$(kubectl -n consul --context $K8S_CONTEXT exec -i consul-server-0 -- sh -c "export starttime=\$(date +'%Y-%m-%dT%H:%M:%SZ' -d@\"\$(( `date +%s`-${DURATION}))\") &&
+    metric=$(kubectl -n consul --context $K8S_CONTEXT exec -i deploy/consulcli -- sh -c "export starttime=\$(date +'%Y-%m-%dT%H:%M:%SZ' -d@\"\$(( `date +%s`-${DURATION}))\") &&
     export endtime=\$(date +'%Y-%m-%dT%H:%M:%SZ') &&
     curl -s prometheus-server.metrics/api/v1/query_range \
     --header 'Content-Type: application/x-www-form-urlencoded'  \
@@ -127,7 +127,7 @@ get_cpu_used(){
     else
         CONTAINER="consul-dataplane"
     fi
-    metric=$(kubectl -n consul --context $K8S_CONTEXT exec -i consul-server-0 -- sh -c "export starttime=\$(date +'%Y-%m-%dT%H:%M:%SZ' -d@\"\$(( `date +%s`-${DURATION}))\") &&
+    metric=$(kubectl -n consul --context $K8S_CONTEXT exec -i deploy/consulcli -- sh -c "export starttime=\$(date +'%Y-%m-%dT%H:%M:%SZ' -d@\"\$(( `date +%s`-${DURATION}))\") &&
     export endtime=\$(date +'%Y-%m-%dT%H:%M:%SZ') &&
     curl -s prometheus-server.metrics/api/v1/query_range \
     --header 'Content-Type: application/x-www-form-urlencoded'  \
@@ -147,7 +147,7 @@ get_mem_used(){
     else
         CONTAINER="consul-dataplane"
     fi
-    metric=$(kubectl -n consul --context $K8S_CONTEXT exec -i consul-server-0 -- sh -c "export starttime=\$(date +'%Y-%m-%dT%H:%M:%SZ' -d@\"\$(( `date +%s`-${DURATION}))\") &&
+    metric=$(kubectl -n consul --context $K8S_CONTEXT exec -i deploy/consulcli -- sh -c "export starttime=\$(date +'%Y-%m-%dT%H:%M:%SZ' -d@\"\$(( `date +%s`-${DURATION}))\") &&
     export endtime=\$(date +'%Y-%m-%dT%H:%M:%SZ') &&
     curl -s prometheus-server.metrics/api/v1/query \
     --header 'Content-Type: application/x-www-form-urlencoded'  \
@@ -219,7 +219,7 @@ usage() {
 while getopts "d:c:n:t:p:w:jh:q:f:k:" o; do
     case "${o}" in
         q)
-            QPS=(${OPTARG})
+            QPS="${OPTARG}"
             if ! [[ ${QPS} =~ ^[0-9]+$ ]]; then
                 usage
             fi
@@ -298,6 +298,12 @@ fi
 if [[ -z $DURATION ]]; then
     DURATION=10
     echo "Setting Run Duration to default: $DURATION sec"
+fi
+if [[ -z $QPS ]]; then
+    QPS=1000
+    echo "Setting default QPS to $QPS"
+else
+    echo "Setting QPS to $QPS"
 fi
 
 # if [[ -z $DURATION ]]; then

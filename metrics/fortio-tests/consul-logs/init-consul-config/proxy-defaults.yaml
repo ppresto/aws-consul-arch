@@ -32,6 +32,6 @@ spec:
         "requested_server_name":             "%REQUESTED_SERVER_NAME%",
         "upstream_transport_failure_reason": "%UPSTREAM_TRANSPORT_FAILURE_REASON%",
         "my_custom_req_header":              "%REQ(MY_CUSTOM_REQ_HEADER)%",
-        "my_custom_header_2":                 "%RESP(MY_CUSTOM_HEADER_2)%"
+        "my_custom_header_2":                "%RESP(MY_CUSTOM_HEADER_2)%"
       }
 
