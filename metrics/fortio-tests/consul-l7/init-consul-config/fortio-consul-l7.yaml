@@ -1,28 +1,3 @@
-apiVersion: consul.hashicorp.com/v1alpha1
-kind: ServiceIntentions
-metadata:
-  name:   fortio-server-defaults
-  namespace: fortio-consul-l7
-spec:
-  destination:
-    name:   fortio-server-defaults
-    namespace: fortio-consul-l7
-  sources:
-    - name: fortio-client
-      action: allow
----
-apiVersion: consul.hashicorp.com/v1alpha1
-kind: ServiceIntentions
-metadata:
-  name:   fortio-server-defaults-grpc
-  namespace: fortio-consul-l7
-spec:
-  destination:
-    name:   fortio-server-defaults-grpc
-    namespace: fortio-consul-l7
-  sources:
-    - name: fortio-client
-      action: allow
 ---
 apiVersion: consul.hashicorp.com/v1alpha1
 kind: ServiceIntentions

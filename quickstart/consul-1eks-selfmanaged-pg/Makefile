@@ -5,6 +5,7 @@ K8S_CONTEXT=`terraform output -json usw2_projects | jq -r '.[]'`
 
 all: infra-deploy eks-connect consul-install metrics-install run-fortio-tests
 destroy: eks-connect metrics-clean consul-clean infra-clean
+demo: infra-deploy eks-connect consul-install metrics-install run-fortio-tests-demo destroy
 
 fmt:
 	@terraform fmt -recursive
@@ -36,14 +37,14 @@ metrics-install:
 	@../../metrics/fortio-tests/deploy.sh
 
 run-fortio-tests:
-	@../../metrics/reports/seq_http_tests.sh -k ${K8S_CONTEXT} -f ./reports
-	@../../metrics/reports/seq_grpc_tests.sh -k ${K8S_CONTEXT} -f ./reports
+	@../../metrics/reports/seq_http_tests.sh -k ${K8S_CONTEXT} -p 1024 -f ./reports
+	@../../metrics/reports/seq_grpc_tests.sh -k ${K8S_CONTEXT} -p 1024 -f ./reports
 
 run-fortio-tests-parallel:
 	@../../metrics/reports/parallel_http_tests.sh -k ${K8S_CONTEXT} -f ./reports
 	@../../metrics/reports/parallel_grpc_tests.sh -k ${K8S_CONTEXT} -f ./reports
 run-fortio-tests-demo:
-	@../../metrics/reports/parallel_http_tests.sh -k ${K8S_CONTEXT} -f ./reports -c2 -d600 -q100
+	@../../metrics/reports/parallel_http_tests.sh -k ${K8S_CONTEXT} -f ./reports -c2 -d3600 -q100
 
 metrics-clean:
 	@-../../metrics/deploy_helm.sh -d
