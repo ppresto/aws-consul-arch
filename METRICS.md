@@ -36,14 +36,14 @@ metrics/fortio-tests/deploy.sh delete
 * -q 1000 Queries per second
 * -c 2 connections array. If not provided connections=(2 4 8 16 32 64)
 * -w 0 no recovery time b/w tests 
-* -h "KEY:VALUE" Header
+* -h "KEY:VALUE" Add a Header
 * -p 512  Payload in bytes
 
 HTTP Test Examples
 ```
 fortio_cli.sh -t consul_http -n fortio-consul-optimized -d60 -c2
 fortio_cli.sh -j -t consul_http -n fortio-consul-optimized -k usw2-app1 -d300 -p512 -f ./reports
-fortio_cli.sh -j -t consul_http -n fortio-consul-optimized -q1000 -d30 -h "MY_CUSTOM_REQ_HEADER:XXXXXXXXXXXXXX"
+fortio_cli.sh -j -t consul_http -n fortio-consul-optimized -q1000 -d120 -h "MY_CUSTOM_REQ_HEADER:XXXXXXXXXXXXXX" -f ./reports -c "4 8 16"
 ```
 
 GRPC Test Examples

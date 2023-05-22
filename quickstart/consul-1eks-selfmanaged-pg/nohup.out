@@ -83,3 +83,158 @@ Fortio 1.54.2 running at 100 queries per second, 8->8 procs, for 1h0m0s: http://
 Starting at 100 qps with 2 thread(s) [gomax 8] for 1h0m0s : 180000 calls each (total 360000)
 Starting at 100 qps with 2 thread(s) [gomax 8] for 1h0m0s : 180000 calls each (total 360000)
 Starting at 100 qps with 2 thread(s) [gomax 8] for 1h0m0s : 180000 calls each (total 360000)
+17:08:50 I http_client.go:1026> [1] Closing dead socket 172.20.204.175:8080 (err EOF at first read)
+17:08:50 I http_client.go:1026> [0] Closing dead socket 172.20.204.175:8080 (err EOF at first read)
+command terminated with exit code 137
+command terminated with exit code 137
+17:08:56 I http_client.go:1026> [1] Closing dead socket 172.20.68.159:8080 (err EOF at first read)
+17:08:56 I http_client.go:1026> [0] Closing dead socket 172.20.68.159:8080 (err EOF at first read)
+command terminated with exit code 137
+command terminated with exit code 137
+17:09:02 I http_client.go:1026> [1] Closing dead socket 172.20.132.242:8080 (err read tcp 10.16.1.17:39844->172.20.132.242:8080: read: connection reset by peer at first read)
+17:09:07 I http_client.go:1026> [0] Closing dead socket 172.20.132.242:8080 (err read tcp 10.16.1.17:39850->172.20.132.242:8080: read: connection reset by peer at first read)
+17:09:08 I http_client.go:1026> [0] Closing dead socket 172.20.132.242:8080 (err EOF at first read)
+17:09:08 I http_client.go:1026> [1] Closing dead socket 172.20.132.242:8080 (err EOF at first read)
+17:09:08 E http_client.go:902> [1] Unable to connect to 172.20.132.242:8080 : dial tcp 172.20.132.242:8080: connect: connection refused
+17:09:08 E http_client.go:902> [0] Unable to connect to 172.20.132.242:8080 : dial tcp 172.20.132.242:8080: connect: connection refused
+command terminated with exit code 137
+Getting Prometheus Metrics
+Getting Prometheus Metrics
+Writing Results...
+Metric Data - Memory: {"status":"success","data":{"resultType":"vector","result":[{"metric":{},"value":[1684775364.598,"36872192"]}]}}
+Metric Data - CPU: {"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1684774910,"0.008982177663822687"],[1684774940,"0.011379801352320001"],[1684774970,"0.014642402381280173"],[1684775000,"0.017173252551176552"],[1684775030,"0.020517722390646597"],[1684775060,"0.023154092019001416"],[1684775090,"0.027143791103580277"],[1684775120,"0.027143791103580277"],[1684775150,"0.02860811321572749"],[1684775180,"0.02860811321572749"],[1684775210,"0.029442672153541714"],[1684775240,"0.029442672153541714"],[1684775270,"0.03024891374966127"],[1684775300,"0.03024891374966127"],[1684775330,"0.03055329484377382"],[1684775360,"0.030553294843773813"]]}]}}
+Metric Data - CPU Throttled: {"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1684774911,"0.0031864619316774264"],[1684774941,"0.004567061578112649"],[1684774971,"0.005552268808678547"],[1684775001,"0.006557916013127408"],[1684775031,"0.006560591541679959"],[1684775061,"0.007970573937729177"],[1684775091,"0.008427032101468097"],[1684775121,"0.008595057838506948"],[1684775151,"0.007746314747506852"],[1684775181,"0.007073750741370443"],[1684775211,"0.005581504607011671"],[1684775241,"0.005728375135350175"],[1684775271,"0.007705640966833129"],[1684775301,"0.00794586985220699"],[1684775331,"0.0072250841304020265"],[1684775361,"0.006707330581624843"]]}]}}
+ Report: wrote csv output to file: ./reports/fortio.results.csv
+
+To See Load Test results port-forward fortio client and click on Browse 'saved results'
+kubectl -n fortio-consul-default port-forward deploy/fortio-client 8080:8080
+
+http://localhost:8080/fortio
+Getting Prometheus Metrics
+Writing Results...
+Metric Data - Memory: {"status":"success","data":{"resultType":"vector","result":[{"metric":{},"value":[1684775367.482,"36331520"]}]}}
+Metric Data - CPU: {"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1684774913,"0.009236811401967129"],[1684774943,"0.011637958163883976"],[1684774973,"0.014856407561991206"],[1684775003,"0.017403558694125822"],[1684775033,"0.020601972689863496"],[1684775063,"0.023617528114636053"],[1684775093,"0.02697305480361568"],[1684775123,"0.02385965623658984"],[1684775153,"0.028612960479835768"],[1684775183,"0.028612960479835768"],[1684775213,"0.02954809777223609"],[1684775243,"0.02954809777223609"],[1684775273,"0.030253781642020663"],[1684775303,"0.030253781642020663"],[1684775333,"0.030656244631603737"],[1684775363,"0.03091154449249337"]]}]}}
+Metric Data - CPU Throttled: {"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1684774914,"0"],[1684774944,"0"],[1684774974,"0"],[1684775004,"0"],[1684775034,"0"],[1684775064,"0"],[1684775094,"0"],[1684775124,"0"],[1684775154,"0"],[1684775184,"0"],[1684775214,"0"],[1684775244,"0"],[1684775274,"0"],[1684775304,"0"],[1684775334,"0"],[1684775364,"0"]]}]}}
+ Report: wrote csv output to file: ./reports/fortio.results.csv
+
+To See Load Test results port-forward fortio client and click on Browse 'saved results'
+kubectl -n fortio-consul-logs port-forward deploy/fortio-client 8080:8080
+
+http://localhost:8080/fortio
+Getting Prometheus Metrics
+Writing Results...
+Metric Data - Memory: {"status":"success","data":{"resultType":"vector","result":[{"metric":{},"value":[1684775370.639,"35147776"]}]}}
+Metric Data - CPU: {"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1684774946,"0.012113125281623045"],[1684774976,"0.014919582795438334"],[1684775006,"0.01788849644422082"],[1684775036,"0.021114798409298148"],[1684775066,"0.024107826433853754"],[1684775096,"0.02993028024555606"],[1684775126,"0.030500841041565176"],[1684775156,"0.03089489227726035"],[1684775186,"0.030999997114098406"],[1684775216,"0.03099999711409841"],[1684775246,"0.031279131231104956"],[1684775276,"0.031590535565573834"],[1684775306,"0.031422272059971244"],[1684775336,"0.031180719964957037"],[1684775366,"0.02521770175623645"]]}]}}
+Metric Data - CPU Throttled: {"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1684774917,"0"],[1684774947,"0"],[1684774977,"0"],[1684775007,"0"],[1684775037,"0"],[1684775067,"0"],[1684775097,"0"],[1684775127,"0"],[1684775157,"0"],[1684775187,"0"],[1684775217,"0"],[1684775247,"0"],[1684775277,"0"],[1684775307,"0"],[1684775337,"0"],[1684775367,"0"]]}]}}
+ Report: wrote csv output to file: ./reports/fortio.results.csv
+
+To See Load Test results port-forward fortio client and click on Browse 'saved results'
+kubectl -n fortio-consul-optimized port-forward deploy/fortio-client 8080:8080
+
+http://localhost:8080/fortio
+Writing Results...
+Metric Data - Memory: {"status":"success","data":{"resultType":"vector","result":[{"metric":{},"value":[1684775373.715,"12435456"]}]}}
+Metric Data - CPU: {"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1684774889,"0.003186803956392698"],[1684774919,"0.004362710216246712"],[1684774949,"0.004027478939999997"],[1684774979,"0.00724401534123778"],[1684775009,"0.008485114294210573"],[1684775039,"0.00999116443082465"],[1684775069,"0.011387610323190876"],[1684775099,"0.012939896479775326"],[1684775129,"0.01121261978979605"],[1684775159,"0.013505128524705009"],[1684775189,"0.013800205489792269"],[1684775219,"0.013800205489792269"],[1684775249,"0.011968256961450445"],[1684775279,"0.014133850208044384"],[1684775309,"0.014139944565110587"],[1684775339,"0.01424309325734134"],[1684775369,"0.014315707262060726"]]}]}}
+Metric Data - CPU Throttled: {"status":"success","data":{"resultType":"matrix","result":[]}}
+ Report: wrote csv output to file: ./reports/fortio.results.csv
+
+To See Load Test results port-forward fortio client and click on Browse 'saved results'
+kubectl -n fortio-baseline port-forward deploy/fortio-client 8080:8080
+
+http://localhost:8080/fortio
+Getting Prometheus Metrics
+Writing Results...
+Metric Data - Memory: {"status":"success","data":{"resultType":"vector","result":[{"metric":{},"value":[1684775382.606,"36417536"]}]}}
+Metric Data - CPU: {"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1684774928,"0.013962982210476819"],[1684774958,"0.017237346834210927"],[1684774988,"0.02094032853151449"],[1684775018,"0.024367658390173092"],[1684775048,"0.028117919800333794"],[1684775078,"0.034896797126055756"],[1684775108,"0.035599880208228095"],[1684775138,"0.031350916622215834"],[1684775168,"0.03682811664215708"],[1684775198,"0.03682811664215708"],[1684775228,"0.03606330915275858"],[1684775258,"0.03606330915275858"],[1684775288,"0.03541918408607909"],[1684775318,"0.03541918408607909"],[1684775348,"0.03583568174309002"],[1684775378,"0.03583568174309002"]]}]}}
+Metric Data - CPU Throttled: {"status":"success","data":{"resultType":"matrix","result":[{"metric":{},"values":[[1684774899,"0"],[1684774929,"0"],[1684774959,"0"],[1684774989,"0"],[1684775019,"0"],[1684775049,"0"],[1684775079,"0"],[1684775109,"0"],[1684775139,"0"],[1684775169,"0"],[1684775199,"0"],[1684775229,"0"],[1684775259,"0"],[1684775289,"0"],[1684775319,"0"],[1684775349,"0"],[1684775379,"0"]]}]}}
+ Report: wrote csv output to file: ./reports/fortio.results.csv
+
+To See Load Test results port-forward fortio client and click on Browse 'saved results'
+kubectl -n fortio-consul-l7 port-forward deploy/fortio-client 8080:8080
+
+http://localhost:8080/fortio
+Redirecting JSON Output to STDOUT for reporting
+Fortio will NOT save graphs in UI when this is enabled
+Running test case: consul_http
+Setting K8s Namespace to fortio-consul-optimized
+Setting QPS to 100
+Setting K8S_CONTEXT  to usw2-app1
+Setting Run Duration to 3600
+Injecting Recovery Time of 30 between tests
+Setting Connections to 2
+Adding Headers: -H MY_CUSTOM_REQ_HEADER:XXXXXXXXXXXXXX
+Setting Payload to: 128 bytes
+Redirecting JSON Output to STDOUT for reporting
+Fortio will NOT save graphs in UI when this is enabled
+Running test case: consul_http
+Setting K8s Namespace to fortio-consul-default
+Setting QPS to 100
+Setting K8S_CONTEXT  to usw2-app1
+Setting Run Duration to 3600
+Injecting Recovery Time of 30 between tests
+Setting Connections to 2
+Adding Headers: -H MY_CUSTOM_REQ_HEADER:XXXXXXXXXXXXXX
+Setting Payload to: 128 bytes
+Redirecting JSON Output to STDOUT for reporting
+Fortio will NOT save graphs in UI when this is enabled
+Running test case: consul_http
+Setting K8s Namespace to fortio-consul-logs
+Setting QPS to 100
+Setting K8S_CONTEXT  to usw2-app1
+Setting Run Duration to 3600
+Injecting Recovery Time of 30 between tests
+Setting Connections to 2
+Adding Headers: -H MY_CUSTOM_REQ_HEADER:XXXXXXXXXXXXXX
+Setting Payload to: 128 bytes
+Redirecting JSON Output to STDOUT for reporting
+Fortio will NOT save graphs in UI when this is enabled
+Running test case: consul_http
+Setting K8s Namespace to fortio-consul-l7
+Setting QPS to 100
+Setting K8S_CONTEXT  to usw2-app1
+Setting Run Duration to 3600
+Injecting Recovery Time of 30 between tests
+Setting Connections to 2
+Adding Headers: -H MY_CUSTOM_REQ_HEADER:XXXXXXXXXXXXXX
+Setting Payload to: 128 bytes
+Redirecting JSON Output to STDOUT for reporting
+Fortio will NOT save graphs in UI when this is enabled
+Running test case: baseline_http
+Setting K8s Namespace to fortio-baseline
+Setting K8S_CONTEXT  to usw2-app1
+Setting QPS to 100
+Setting Run Duration to 3600
+Injecting Recovery Time of 30 between tests
+Setting Connections to 2
+Adding Headers: -H MY_CUSTOM_REQ_HEADER:XXXXXXXXXXXXXX
+Setting Payload to: 128 bytes
+Setting Reporting FILE_PATH to ./reports
+Setting Reporting FILE_PATH to ./reports
+Setting Reporting FILE_PATH to ./reports
+Setting Reporting FILE_PATH to ./reports
+Setting Reporting FILE_PATH to ./reports
+Running HTTP-fortio-consul-optimized for 3600s with 2 connections in K8s ns fortio-consul-optimized
+Running HTTP-fortio-consul-default for 3600s with 2 connections in K8s ns fortio-consul-default
+Running HTTP-fortio-consul-logs for 3600s with 2 connections in K8s ns fortio-consul-logs
+Running HTTP-fortio-consul-l7 for 3600s with 2 connections in K8s ns fortio-consul-l7
+Running HTTP-fortio-baseline for 3600s with 2 connections in K8s ns fortio-baseline
+17:11:17 I scli.go:88> Starting Φορτίο 1.54.2 h1:so0yEUbi5wYPCh985i+Jjp5tEVJopownfx58QjksTLs= go1.20.3 amd64 linux
+Fortio 1.54.2 running at 100 queries per second, 8->8 procs, for 1h0m0s: http://fortio-server-defaults:8080/echo?size=128:100
+17:11:17 I httprunner.go:99> Starting http test for http://fortio-server-defaults:8080/echo?size=128:100 with 2 threads at 100.0 qps and parallel warmup
+17:11:17 I scli.go:88> Starting Φορτίο 1.54.2 h1:so0yEUbi5wYPCh985i+Jjp5tEVJopownfx58QjksTLs= go1.20.3 amd64 linux
+Fortio 1.54.2 running at 100 queries per second, 8->8 procs, for 1h0m0s: http://fortio-server-defaults:8080/echo
+17:11:17 I httprunner.go:99> Starting http test for http://fortio-server-defaults:8080/echo with 2 threads at 100.0 qps and parallel warmup
+17:11:17 I scli.go:88> Starting Φορτίο 1.54.2 h1:so0yEUbi5wYPCh985i+Jjp5tEVJopownfx58QjksTLs= go1.20.3 amd64 linux
+Starting at 100 qps with 2 thread(s) [gomax 8] for 1h0m0s : 180000 calls each (total 360000)
+Fortio 1.54.2 running at 100 queries per second, 8->8 procs, for 1h0m0s: http://fortio-server-defaults:8080/echo?size=128:100
+17:11:17 I httprunner.go:99> Starting http test for http://fortio-server-defaults:8080/echo?size=128:100 with 2 threads at 100.0 qps and parallel warmup
+17:11:17 I scli.go:88> Starting Φορτίο 1.54.2 h1:so0yEUbi5wYPCh985i+Jjp5tEVJopownfx58QjksTLs= go1.20.3 amd64 linux
+Fortio 1.54.2 running at 100 queries per second, 8->8 procs, for 1h0m0s: http://fortio-server-defaults:8080/echo?size=128:100
+17:11:17 I httprunner.go:99> Starting http test for http://fortio-server-defaults:8080/echo?size=128:100 with 2 threads at 100.0 qps and parallel warmup
+Starting at 100 qps with 2 thread(s) [gomax 8] for 1h0m0s : 180000 calls each (total 360000)
+Starting at 100 qps with 2 thread(s) [gomax 8] for 1h0m0s : 180000 calls each (total 360000)
+17:11:17 I scli.go:88> Starting Φορτίο 1.54.2 h1:so0yEUbi5wYPCh985i+Jjp5tEVJopownfx58QjksTLs= go1.20.3 amd64 linux
+Fortio 1.54.2 running at 100 queries per second, 8->8 procs, for 1h0m0s: http://fortio-server-defaults:8080/echo?size=128:100
+17:11:17 I httprunner.go:99> Starting http test for http://fortio-server-defaults:8080/echo?size=128:100 with 2 threads at 100.0 qps and parallel warmup
+Starting at 100 qps with 2 thread(s) [gomax 8] for 1h0m0s : 180000 calls each (total 360000)
+Starting at 100 qps with 2 thread(s) [gomax 8] for 1h0m0s : 180000 calls each (total 360000)
