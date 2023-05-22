@@ -28,7 +28,30 @@ Undeploy test cases by providing any value as a parameter (ex: delete)
 metrics/fortio-tests/deploy.sh delete
 ```
 
-## Run Fortio Tests
+## Fortio Quickstart
+* -j enables json output to stdout which is needed by -f. Otherwise, use `kubectl port-forward deploy/fortio 8080` to view graphs.
+* -f write output to file_path. Requires -j
+* -k k8s-context to override current-context
+* -d 10 duration of test
+* -q 1000 Queries per second
+* -c 2 connections array. If not provided connections=(2 4 8 16 32 64)
+* -w 0 no recovery time b/w tests 
+* -h "KEY:VALUE" Header
+* -p 512  Payload in bytes
+
+HTTP Test Examples
+```
+fortio_cli.sh -t consul_http -n fortio-consul-optimized -d60 -c2
+fortio_cli.sh -j -t consul_http -n fortio-consul-optimized -k usw2-app1 -d300 -p512 -f ./reports
+fortio_cli.sh -j -t consul_http -n fortio-consul-optimized -q1000 -d30 -h "MY_CUSTOM_REQ_HEADER:XXXXXXXXXXXXXX"
+```
+
+GRPC Test Examples
+```
+fortio_cli.sh -t consul_grpc -n fortio-consul-optimized -k usw2-app1 -d300 -c "2 4 8"
+fortio_cli.sh -j -t consul_grpc -n fortio-consul-optimized -d300 -c2 -p512 -h "MY_CUSTOM_REQ_HEADER:XXXXXXXXXXXXXX" -f ./reports
+```
+## Run All Fortio Tests
 The fortio_cli.sh wrapper helps run fortio test cases quickly from the CLI and write the data to a file.  The following wrapper scripts use fortio_cli.sh to run a suite of tests.
 * parallel_http_tests.sh
 * seq_http_tests.sh
@@ -44,6 +67,10 @@ Runs all test cases in parallel.
 * fortio-consul-l7
 These scripts will use your current k8s context for 6 different runs across all test cases.  Each run uses a higher # of concurrent connections or threads (2, 4, 8, 16, 32, 64).  The default test duration is 300 seconds per test.  
 
+```
+parallel_http_tests.sh -k usw2-app1 -f ./reports -p1024 -c2
+parallel_grpc_tests.sh -k usw2-app1 -f ./reports -d30 -h "KEY:VALUE"
+```
 ### Sequencial - seq_http_tests.sh
 Runs all test cases in sequence.
 * fortio-baseline
@@ -52,7 +79,10 @@ Runs all test cases in sequence.
 * fortio-consul-logs
 * fortio-consul-l7
 This script will use your current k8s context for 6 different runs on each test case in order.  Each run uses a higher # of concurrent connections or threads (2, 4, 8, 16, 32, 64).  The default test duration is 300 seconds per test.  This gives the most accurate results and takes ~ 3h.
-
+```
+seq_http_tests.sh -k usw2-app1 -f ./reports -p1024 -c2
+seq_grpc_tests.sh -k usw2-app1 -f ./reports -d30 -h "KEY:VALUE"
+```
 ## Run Fortio Test using fortio_cli.sh
 Fortio test cases are all stored in their own K8s namespace.
 Namespace Examples
@@ -65,13 +95,7 @@ Each test case supports two types of tests
 * consul_http
 * consul_grpc
 
-### Run a single HTTP performance test 
-* -k k8s-context to override current-context
-* -d 10 second during
-* -c 2 connections
-* -w 0 no recovery time b/w tests 
-* -f write output to file path /tmp (includes aggregated csv)
-* -j enables json output to stdout which is needed by -f
+### Run a single HTTP/GRPC performance test and write results to a file
 
 `fortio-consul-optimized` has configured the dataplane with more cpu and memory then `fortio-consul-default` to support more conncurrent connections.  Use either test case to run a quick HTTP performance test.
 ```

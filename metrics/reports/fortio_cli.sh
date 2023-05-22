@@ -6,7 +6,7 @@ RECOVERY_TIME=0
 PAYLOAD=""
 JSON=""
 QPS=1000
-CONNECTIONS=(2 4 8 16 32 64)
+
 
 baseline_http() {
     if [[ -z $NAMESPACE ]]; then
@@ -20,7 +20,7 @@ baseline_http() {
         DATE=$(date '+%m%d%Y-%H%M%S')
         REPORT="${FILE_PATH}/$(echo ${Label}|sed s"/ /_/g")_${NAMESPACE}_${c}c_${DATE}.json"
         echo "Running ${Label} for ${DURATION}s with $c connections in K8s ns $NAMESPACE"
-        kubectl -n $NAMESPACE --context ${K8S_CONTEXT} exec -i deploy/fortio-client -c fortio -- fortio load -qps ${QPS} -c ${c} -r .0001 -t ${DURATION}s -payload "${PAYLOAD}" -a -labels "${Label}" ${JSON} http://fortio-server-defaults:8080/echo > "${REPORT}"
+        kubectl -n $NAMESPACE --context ${K8S_CONTEXT} exec -i deploy/fortio-client -c fortio -- fortio load -qps ${QPS} -c ${c} -r .0001 -t ${DURATION}s ${HEADERS} -payload "${PAYLOAD}" -a -labels "${Label}" ${JSON} http://fortio-server-defaults:8080/echo > "${REPORT}"
         sleep $RECOVERY_TIME
         report $REPORT $DATE ${NAMESPACE}
     done
@@ -42,7 +42,7 @@ baseline_grpc() {
         DATE=$(date '+%m%d%Y-%H%M%S')
         REPORT="${FILE_PATH}/$(echo ${Label}|sed s"/ /_/g")_${NAMESPACE}_${c}c_${DATE}.json"
         echo "Running ${Label} for ${DURATION}s with $c connections in K8s ns $NAMESPACE"
-        kubectl -n $NAMESPACE --context ${K8S_CONTEXT} exec -i deploy/fortio-client -c fortio -- fortio load -grpc -ping -qps ${QPS} -c $c -s 1 -r .0001 -t ${DURATION}s -payload "${PAYLOAD}" -a -labels "${Label}" ${JSON} fortio-server-defaults:8079 > "${REPORT}"
+        kubectl -n $NAMESPACE --context ${K8S_CONTEXT} exec -i deploy/fortio-client -c fortio -- fortio load -grpc -ping -qps ${QPS} -c $c -s 1 -r .0001 -t ${DURATION}s ${HEADERS} -payload "${PAYLOADBYTES}" -a -labels "${Label}" ${JSON} fortio-server-defaults:8079 > "${REPORT}"
         sleep $RECOVERY_TIME
         report $REPORT $DATE ${NAMESPACE}
     done
@@ -64,7 +64,7 @@ consul_http() {
         DATE=$(date '+%m%d%Y-%H%M%S')
         REPORT="${FILE_PATH}/$(echo ${Label}|sed s"/ /_/g")_${NAMESPACE}_${c}c_${DATE}.json"
         echo "Running ${Label} for ${DURATION}s with $c connections in K8s ns $NAMESPACE"
-        kubectl -n $NAMESPACE --context ${K8S_CONTEXT} exec -i deploy/fortio-client -c fortio -- fortio load -qps ${QPS} -c $c -r .0001 -t ${DURATION}s -payload "${PAYLOAD}" ${HEADERS} -a -labels "${Label}" ${JSON} http://fortio-server-defaults:8080/echo > "${REPORT}"
+        kubectl -n $NAMESPACE --context ${K8S_CONTEXT} exec -i deploy/fortio-client -c fortio -- fortio load -qps ${QPS} -c $c -r .0001 -t ${DURATION}s ${HEADERS} -a -labels "${Label}" ${JSON} http://fortio-server-defaults:8080/echo?size=${PAYLOAD}:100 > "${REPORT}"
         PID=$!
         wait $PID
         sleep $RECOVERY_TIME
@@ -88,7 +88,7 @@ consul_grpc() {
         DATE=$(date '+%m%d%Y-%H%M%S')
         REPORT="${FILE_PATH}/$(echo ${Label}|sed s"/ /_/g")_${NAMESPACE}_${c}c_${DATE}.json"
         echo "Running ${Label} for ${DURATION}s with $c connections in K8s ns $NAMESPACE"
-        kubectl -n $NAMESPACE --context ${K8S_CONTEXT} exec -i deploy/fortio-client -c fortio -- fortio load -grpc -ping -qps ${QPS} -c $c -s 1 -r .0001 -t ${DURATION}s -payload "${PAYLOAD}" -a -labels "${Label}" -json - fortio-server-defaults-grpc:8079 > "${REPORT}"
+        kubectl -n $NAMESPACE --context ${K8S_CONTEXT} exec -i deploy/fortio-client -c fortio -- fortio load -grpc -ping -qps ${QPS} -c $c -s 1 -r .0001 -t ${DURATION}s ${HEADERS} -payload "${PAYLOADBYTES}" -a -labels "${Label}" -json - fortio-server-defaults-grpc:8079 > "${REPORT}"
         sleep $RECOVERY_TIME
         report $REPORT $DATE ${NAMESPACE}
     done
@@ -210,9 +210,9 @@ report () {
 }
 
 usage() { 
-    echo "Usage: $0 [-d <seconds>] [-c <#threads>] [-n <k8s_namespace>] [-t <test_case>] [-p <payload_string>] [-j]" 1>&2; 
+    echo "Usage: $0 [-d <seconds>] [-c <#threads>] [-n <k8s_namespace>] [-t <test_case>] [-p <size_in_bytes>] [-j]" 1>&2; 
     echo
-    echo "Example: $0 -t consul_http -d 300 -c 32"
+    echo "Example: $0 -t consul_http -d 300 -c 32 -p 1024"
     exit 1; 
 }
 
@@ -220,6 +220,7 @@ while getopts "d:c:n:t:p:w:jh:q:f:k:" o; do
     case "${o}" in
         q)
             QPS="${OPTARG}"
+            echo "Setting QPS to $QPS"
             if ! [[ ${QPS} =~ ^[0-9]+$ ]]; then
                 usage
             fi
@@ -249,7 +250,12 @@ while getopts "d:c:n:t:p:w:jh:q:f:k:" o; do
             ;;
         p)
             PAYLOAD="${OPTARG}"
-            echo "Running with Payload: $PAYLOAD"
+            if ! [[ ${PAYLOAD} =~ ^[0-9]+$ ]]; then
+                usage
+            fi
+            echo "Setting Payload to: ${PAYLOAD} bytes"
+            #mac only
+            PAYLOADBYTES=$(cat /dev/urandom | env LC_ALL=C LC_CTYPE=C tr -dc 'a-zA-Z0-9' | head -c ${PAYLOAD})
             ;;
         w)
             RECOVERY_TIME="${OPTARG}"
@@ -293,17 +299,25 @@ fi
 
 if [[ -z $K8S_CONTEXT ]]; then
     K8S_CONTEXT=$(kubectl config current-context)
-    echo "Setting K8S_CONTEXT to $K8S_CONTEXT"
+    echo "Using Current K8S_CONTEXT: $K8S_CONTEXT"
 fi
+
+if [[ -z $CONNECTIONS ]]; then
+    CONNECTIONS=(2 4 8 16 32 64)
+    echo "Setting Connections to ${CONNECTIONS[@]}"
+fi
+
 if [[ -z $DURATION ]]; then
     DURATION=10
-    echo "Setting Run Duration to default: $DURATION sec"
 fi
+
 if [[ -z $QPS ]]; then
     QPS=1000
-    echo "Setting default QPS to $QPS"
-else
-    echo "Setting QPS to $QPS"
+fi
+
+if [[ -z $PAYLOAD ]]; then
+    PAYLOAD=128
+    PAYLOADBYTES=$(cat /dev/urandom | env LC_ALL=C LC_CTYPE=C tr -dc 'a-zA-Z0-9' | head -c ${PAYLOAD})
 fi
 
 # if [[ -z $DURATION ]]; then
@@ -312,7 +326,7 @@ fi
 # fi
 
 if [[ -z $TEST ]]; then
-    echo "Running Default HTTP Test: consul_http in k8s namespace fortio-consul"
+    echo "Running Default Test: consul_http"
     TEST="consul_http"
 fi
 $TEST
