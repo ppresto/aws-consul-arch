@@ -84,22 +84,19 @@ seq_http_tests.sh -k usw2-app1 -f ./reports -p1024 -c2
 seq_grpc_tests.sh -k usw2-app1 -f ./reports -d30 -h "KEY:VALUE"
 ```
 ## Run Fortio Test using fortio_cli.sh
-Fortio test cases are all stored in their own K8s namespace.
-Namespace Examples
-* fortio-consul-default
-* fortio-consul-optimized
-* fortio-consul-logs
-* fortio-consul-l7
+https://istio.io/v1.14/docs/ops/deployment/performance-and-scalability/
 
-Each test case supports two types of tests
-* consul_http
-* consul_grpc
+```
+
+```
 
 ### Run a single HTTP/GRPC performance test and write results to a file
 
 `fortio-consul-optimized` has configured the dataplane with more cpu and memory then `fortio-consul-default` to support more conncurrent connections.  Use either test case to run a quick HTTP performance test.
 ```
 metrics/reports/fortio_cli.sh -j -t consul_http -n fortio-consul-optimized -k usw2-app1 -d 10 -w 0 -c2 -f /tmp
+
+../../metrics/reports/fortio_cli.sh -j -t consul_http -n fortio-consul-optimized -k usw2-app1 -d300 -p1024 -c16 -f ./reports
 ```
 
 single GRPC test

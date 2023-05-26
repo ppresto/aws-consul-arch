@@ -37,8 +37,8 @@ metrics-install:
 	@../../metrics/fortio-tests/deploy.sh
 
 run-fortio-tests:
-	@../../metrics/reports/seq_http_tests.sh -k ${K8S_CONTEXT} -p 1024 -f ./reports
-	@../../metrics/reports/seq_grpc_tests.sh -k ${K8S_CONTEXT} -p 1024 -f ./reports
+	@../../metrics/reports/seq_http_tests.sh -k ${K8S_CONTEXT} -p 1024 -c "2 4 8 16" -d 180 -f ./reports
+	@../../metrics/reports/seq_grpc_tests.sh -k ${K8S_CONTEXT} -p 1024 -c "2 4 8 16" -d 180 -f ./reports
 
 run-fortio-tests-parallel:
 	@../../metrics/reports/parallel_http_tests.sh -k ${K8S_CONTEXT} -f ./reports
