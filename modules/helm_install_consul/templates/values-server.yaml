@@ -83,27 +83,16 @@ connectInject:
     # defaultPrometheusScrapePort: 20200
     # defaultPrometheusScrapePath: "/metrics"
     # defaultMergedMetricsPort: 20100
-  sidecarProxy:
-    # https://blog.envoyproxy.io/envoy-threading-model-a8d44b922310
-    concurrency: 2
-
-    # These settings can be overridden on a per-pod basis via these annotations:
-    # - `consul.hashicorp.com/sidecar-proxy-cpu-limit`
-    # - `consul.hashicorp.com/sidecar-proxy-cpu-request`
-    # - `consul.hashicorp.com/sidecar-proxy-memory-limit`
-    # - `consul.hashicorp.com/sidecar-proxy-memory-request`
-    # @type: map
-    resources:
-      requests:
-        # Recommended production default: 100Mi
-        memory: "100Mi" 
-        # Recommended production default: 100m
-        cpu: "100m"
-      limits:
-        # Recommended production default: 100Mi
-        memory: "100Mi"
-        # Recommended production default: 100m
-        cpu: "100m"
+  # sidecarProxy:
+  #   # https://blog.envoyproxy.io/envoy-threading-model-a8d44b922310
+  #   concurrency: 2
+  #   resources:
+  #     requests:
+  #       memory: "100Mi" 
+  #       cpu: "100m"
+  #     limits:
+  #       memory: "100Mi"
+  #       cpu: "100m"
   initContainer:
   # The defaults are optimized for developer instances of Kubernetes, however they should 
   # be tweaked with the recommended defaults as shown below to speed up service registration times. 

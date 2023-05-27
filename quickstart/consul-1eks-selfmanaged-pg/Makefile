@@ -3,9 +3,9 @@
 
 K8S_CONTEXT=`terraform output -json usw2_projects | jq -r '.[]'`
 
-all: infra-deploy eks-connect consul-install metrics-install run-fortio-tests destroy
+all: infra-install eks-connect consul-install metrics-install run-fortio-tests destroy
 destroy: eks-connect metrics-clean consul-clean infra-clean
-demo: infra-deploy eks-connect consul-install metrics-install run-fortio-tests-demo
+demo: infra-install eks-connect consul-install metrics-install run-fortio-tests-demo
 
 fmt:
 	@terraform fmt -recursive
@@ -13,7 +13,7 @@ fmt:
 init: fmt
 	@terraform init
 
-infra-deploy: init
+infra-install: init
 	@-terraform apply -auto-approve
 	@sleep 5
 	@terraform apply -auto-approve
@@ -37,8 +37,8 @@ metrics-install:
 	@../../metrics/fortio-tests/deploy.sh
 
 run-fortio-tests:
-	@../../metrics/reports/seq_http_tests.sh -k ${K8S_CONTEXT} -p 1024 -c "2 4 8 16" -d 180 -f ./reports
-	@../../metrics/reports/seq_grpc_tests.sh -k ${K8S_CONTEXT} -p 1024 -c "2 4 8 16" -d 180 -f ./reports
+	@../../metrics/reports/seq_http_tests.sh -k ${K8S_CONTEXT} -p 1024 -c "16" -d 120 -f ./reports
+	@../../metrics/reports/seq_grpc_tests.sh -k ${K8S_CONTEXT} -p 1024 -c "16" -d 120 -f ./reports
 
 run-fortio-tests-parallel:
 	@../../metrics/reports/parallel_http_tests.sh -k ${K8S_CONTEXT} -f ./reports
