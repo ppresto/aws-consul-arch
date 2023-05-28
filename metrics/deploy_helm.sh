@@ -32,7 +32,7 @@ helmDeploy() {
     helm repo update
     helm install -n metrics -f ${SCRIPT_DIR}/helm/prometheus-values-with-nodeselector.yaml prometheus prometheus-community/prometheus --version "15.5.3" --wait
     # Set Consul Server for prometheus-consul-exporter
-    sed "s/{{CONSUL_SERVER}}/${CONSUL_SERVER}/" helm/prometheus-consul-exporter.yaml.tmpl > ${SCRIPT_DIR}/helm/prometheus-consul-exporter.yaml
+    sed "s/{{CONSUL_SERVER}}/${CONSUL_SERVER}/" ${SCRIPT_DIR}/helm/prometheus-consul-exporter.yaml.tmpl > ${SCRIPT_DIR}/helm/prometheus-consul-exporter.yaml
     helm install -n metrics -f ${SCRIPT_DIR}/helm/prometheus-consul-exporter.yaml prometheus-consul-exporter prometheus-community/prometheus-consul-exporter ${nodeSelector} --wait
 
     helm repo add grafana https://grafana.github.io/helm-charts

@@ -33,18 +33,16 @@ consul-install:
 	@echo
 
 metrics-install:
-	@../../metrics/deploy_helm.sh
+	@../../metrics/deploy_helm.sh -c "consul-server:8500"
 	@../../metrics/fortio-tests/deploy.sh
 
 run-fortio-tests:
-	@../../metrics/reports/seq_http_tests.sh -k ${K8S_CONTEXT} -p 1024 -c "16" -d 120 -f ./reports
-	@../../metrics/reports/seq_grpc_tests.sh -k ${K8S_CONTEXT} -p 1024 -c "16" -d 120 -f ./reports
+	@../../metrics/reports/seq_http_tests.sh -k ${K8S_CONTEXT} -p 1024 -c "16" -d 300 -f ./reports
+	@../../metrics/reports/seq_grpc_tests.sh -k ${K8S_CONTEXT} -p 1024 -c "16" -d 300 -f ./reports
 
 run-fortio-tests-parallel:
 	@../../metrics/reports/parallel_http_tests.sh -k ${K8S_CONTEXT} -f ./reports
 	@../../metrics/reports/parallel_grpc_tests.sh -k ${K8S_CONTEXT} -f ./reports
-run-fortio-tests-demo:
-	@../../metrics/reports/parallel_http_tests.sh -k ${K8S_CONTEXT} -f ./reports -c"2 4 8" -d180
 
 metrics-clean:
 	@-../../metrics/deploy_helm.sh -d
