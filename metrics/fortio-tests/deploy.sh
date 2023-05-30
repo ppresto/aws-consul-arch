@@ -56,13 +56,13 @@ deploy() {
     kubectl create namespace fortio-consul-optimized
     kubectl create namespace fortio-consul-logs
     kubectl create namespace fortio-consul-l7
-    kubectl create namespace fortio-consul-default-tcp
+    kubectl create namespace fortio-consul-tcp
 
     kubectl apply -f ${SCRIPT_DIR}/baseline
     kubectl apply -f ${SCRIPT_DIR}/consul-default/init-consul-config
     kubectl apply -f ${SCRIPT_DIR}/consul-default
-    kubectl apply -f ${SCRIPT_DIR}/consul-default-tcp/init-consul-config
-    kubectl apply -f ${SCRIPT_DIR}/consul-default-tcp
+    kubectl apply -f ${SCRIPT_DIR}/consul-tcp/init-consul-config
+    kubectl apply -f ${SCRIPT_DIR}/consul-tcp
     kubectl apply -f ${SCRIPT_DIR}/consul-optimized/init-consul-config
     kubectl apply -f ${SCRIPT_DIR}/consul-optimized
     kubectl apply -f ${SCRIPT_DIR}/consul-logs/init-consul-config
@@ -91,14 +91,14 @@ delete() {
     kubectl delete -f ${SCRIPT_DIR}/baseline
     kubectl delete -f ${SCRIPT_DIR}/consul-l7
     kubectl delete -f ${SCRIPT_DIR}/consul-l7/init-consul-config
-    kubectl delete -f ${SCRIPT_DIR}/consul-default-tcp
-    kubectl delete -f ${SCRIPT_DIR}/consul-default-tcp/init-consul-config
+    kubectl delete -f ${SCRIPT_DIR}/consul-tcp
+    kubectl delete -f ${SCRIPT_DIR}/consul-tcp/init-consul-config
     
     kubectl delete namespace fortio-consul-optimized
     kubectl delete namespace fortio-consul-default
     kubectl delete namespace fortio-consul-logs
     kubectl delete namespace fortio-consul-l7
-    kubectl delete namespace fortio-consul-default-tcp
+    kubectl delete namespace fortio-consul-tcp
     kubectl delete namespace fortio-baseline
 }
 
