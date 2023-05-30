@@ -1,7 +1,7 @@
 #!/bin/bash
 SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
 
-NAMESPACES=(fortio-consul-default fortio-consul-optimized fortio-consul-logs fortio-consul-l7)
+NAMESPACES=(fortio-consul-tcp fortio-consul-default fortio-consul-optimized fortio-consul-logs fortio-consul-l7)
 TEST_TYPE=(consul_grpc)
 
 # Only used in the consul-l7 test case, but adding header in all cases for simplicity.

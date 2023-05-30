@@ -300,11 +300,11 @@ kubectl label nodes ip-10-16-1-177.us-west-2.compute.internal nodetype=consul
 ```
 
 ### EKS - Helm Install manually to debug
-Manually install consul using Helm.  The test.yaml below can be created from existing Terraform Output.  Make sure you are using a [compatable consul-k8s helm chart version](https://www.consul.io/docs/k8s/compatibility).  For Ent Consul make sure you create the k8s license secret in the correct namespace that the helm chart is expecting.
+Manually install consul using Helm.  The test.yaml below can be created from existing Terraform Output.  Make sure you are using a [compatable consul-k8s helm chart version](https://www.consul.io/docs/k8s/compatibility).  For Ent Consul make sure you create the k8s license secret in the correct namespace that the helm chart is expecting (ex: consul).
 
-Creating license secret in -n consul
 ```
-secret=$(cat ./files/consul.lic)
+kubectl create namespace consul
+secret=$(cat ../../files/consul.lic)
 kubectl -n consul create secret generic consul-ent-license --from-literal="key=${secret}"
 ```
 
@@ -319,7 +319,7 @@ helm install team2 hashicorp/consul --namespace consul --version 1.0.2 --set glo
 helm install consul-usw2-app1 hashicorp/consul --namespace consul --version 1.0.2 --values ./yaml/auto-consul-usw2-app2-values.yaml
 
 # consul 1.15.2-ent
-helm install consul-usw2-app1 hashicorp/consul --namespace consul --version 1.1.1 --values ./yaml/auto-consul-usw2-app2-values.yaml
+helm install consul-usw2-app1 hashicorp/consul --namespace consul --version 1.1.1 --values ./yaml/ex-consul-usw2-app1-values.yaml
 ```
 
 ### EKS - Uninstall Helm chart

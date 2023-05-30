@@ -32,6 +32,14 @@ consul-install:
 	@kubectl -n consul get secrets consul-bootstrap-acl-token --template "{{ .data.token | base64decode }}"
 	@echo
 
+consul-install-noacltls-metrics-notproxy:
+	@kubectl create namespace consul
+	@secret=$(cat ../../files/consul.lic)
+	@kubectl -n consul create secret generic consul-ent-license --from-literal="key=${secret}"
+	@helm install consul-usw2-app1 hashicorp/consul --namespace consul --version 1.1.1 --values ./consul_helm_values/yaml/auto-consul-values-noACL-noTLS.yaml
+	@../../metrics/deploy_helm.sh -c "consul-server:8500"
+	@../../metrics/fortio-tests-noACLs/deploy.sh
+
 metrics-install:
 	@../../metrics/deploy_helm.sh -c "consul-server:8500"
 	@../../metrics/fortio-tests/deploy.sh
@@ -46,10 +54,13 @@ run-fortio-tests-parallel:
 
 metrics-clean:
 	@-../../metrics/deploy_helm.sh -d
-	@-../../metrics/fortio-tests/deploy.sh delete
+	@-../../metrics/fortio-tests/deploy.sh -d
+	@-../../metrics/fortio-tests-noACLs/deploy.sh -d
 
 consul-clean: eks-connect metrics-clean
 	@-terraform -chdir="consul_helm_values" destroy -auto-approve 
+	@-kubectl -n consul delete secrets consul-ent-license
+	@-kubectl delete ns consul
 
 infra-clean:
 	@terraform destroy -auto-approve 

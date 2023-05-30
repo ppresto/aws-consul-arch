@@ -41,9 +41,10 @@ metrics/fortio-tests/deploy.sh delete
 
 HTTP Test Examples
 ```
-fortio_cli.sh -t consul_http -n fortio-consul-optimized -d60 -c2
-fortio_cli.sh -j -t consul_http -n fortio-consul-optimized -k usw2-app1 -d300 -p512 -f ./reports
+fortio_cli.sh -t consul_http -n fortio-consul-optimized -d10 -c16
+fortio_cli.sh -j -t consul_http -n fortio-consul-optimized -k usw2-app1 -d10 -p1024 -c16 -f ./reports
 fortio_cli.sh -j -t consul_http -n fortio-consul-optimized -q1000 -d120 -h "MY_CUSTOM_REQ_HEADER:XXXXXXXXXXXXXX" -f ./reports -c "4 8 16"
+fortio_cli.sh -j -t consul_http -n fortio-consul-default -d30 -p1024 -f ./reports
 ```
 
 GRPC Test Examples
