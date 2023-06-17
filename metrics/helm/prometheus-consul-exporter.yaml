@@ -26,7 +26,7 @@ fullnameOverride: ""
 
 # Add your consul server details here
 #consulServer: "consul-server:8500"
-consulServer: "consul-server:8500"
+consulServer: "consul-server:8500:443"
 
 # Flags - for a list visit https://github.com/prometheus/consul_exporter#flags
 #options: {}

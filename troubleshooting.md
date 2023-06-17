@@ -12,7 +12,7 @@
     - [AWS EC2 - Monitor the Server](#aws-ec2---monitor-the-server)
     - [AWS EC2 - Deploy service (api)](#aws-ec2---deploy-service-api)
   - [Consul - DNS](#consul---dns)
-    - [Consul - DNS lookups](#consul---dns-lookups)
+    - [Consul - DNS lookups with agent](#consul---dns-lookups-with-agent)
     - [Consul - DNS lookups on EKS](#consul---dns-lookups-on-eks)
     - [Consul - Mesh GW](#consul---mesh-gw)
     - [Consul - Ingress GW](#consul---ingress-gw)
@@ -150,7 +150,7 @@ There are some additional example configurations that use the CLI to configure L
 
 ## Consul - DNS
 
-### Consul - DNS lookups
+### Consul - DNS lookups with agent
 Use the local consul clients DNS interface that runs on port 8600 for testing.  This client will service local DNS requests to the HCP Consul service over port 8301 so there is no need to add additional security rules for port 8600.
 ```
 dig @127.0.0.1 -p 8600 consul.service.consul

@@ -6,7 +6,7 @@ global:
   datacenter: ${datacenter}
   image: "hashicorp/consul-enterprise:${consul_version}"
   imageK8S: docker.mirror.hashicorp.services/hashicorp/consul-k8s-control-plane:${consul_helm_chart_version}
-  imageConsulDataplane: "hashicorp/consul-dataplane:1.1.0"
+  #imageConsulDataplane: "hashicorp/consul-dataplane:1.1.0"
   enterpriseLicense:
     secretName: 'consul-ent-license'
     secretKey: 'key'

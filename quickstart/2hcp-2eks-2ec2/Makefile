@@ -1,28 +1,28 @@
-.PHONY: all init deploy plan destroy fmt clean
-.PHONY: consul consul-info consul-use1 consul-usw2 awslb dataplane fake-service
+.PHONY: all init infra plan destroy fmt clean
+.PHONY: consul consul-info awslb dataplane fake-service
 
 OUTPUT=`terraform output -raw`
 
-all: deploy consul
+all: infra consul
 
 init: fmt
 	@doormat login && eval $(doormat aws export -a aws_ppresto_test)
 	@terraform init
 
-deploy: init
+infra: init
 	@-terraform apply -auto-approve
-	@sleep 30
+	@sleep 5
 	@terraform apply -auto-approve
 	@source "../../scripts/kubectl_connect_eks.sh" .
-	@kubectl config use-context usw2-app1
-	@kubectl cluster-info
+	@../../scripts/install_awslb_controller.sh .
 
-consul: awslb dataplane consul-info fake-service
+consul: dataplane consul-info fake-service
 
 awslb:
 	@../../scripts/install_awslb_controller.sh .
 
 dataplane:
+	@terraform -chdir="consul_helm_values" init
 	@terraform -chdir="consul_helm_values" apply -auto-approve
 
 consul-info:
@@ -34,14 +34,11 @@ consul-info:
 	@echo
 
 fake-service:
-	@ "../../examples/apps-peer-dataplane-ap-def/peering/peer_east_to_west.sh"
-	@ "../../examples/apps-peer-dataplane-ap-def/fake-service/deploy-with-failover.sh"
+	@ "../../examples/apps-peer-dataplane-eks-ap-def/fake-service/deploy-with-failover.sh"
 
 consul-clean:
-	@-../../examples/apps-peer-dataplane-ap-def/peering/peer_east_to_west.sh del
-	@-../../examples/apps-peer-dataplane-ap-def/fake-service/deploy-with-failover.sh del
-	@-terraform -chdir="consul_helm_values" destroy -auto-approve 
-	@- helm uninstall -n kube-system aws-load-balancer-controller eks/aws-load-balancer-controller
+	@-../../examples/apps-peer-dataplane-eks-ap-def/fake-service/deploy-with-failover.sh del
+	@-terraform -chdir="consul_helm_values" destroy -auto-approve
 
 plan: init
 	@terraform validate

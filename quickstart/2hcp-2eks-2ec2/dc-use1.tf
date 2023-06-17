@@ -41,6 +41,18 @@ locals {
         "public_endpoint"    = true
         #"hvn_private_route_cidr_list" : ["10.0.0.0/10"] # Default uses [local.all_routable_cidr_blocks_use1]
       }
+      "eks" = {
+        "cluster_name" : "${var.prefix}-use1-shared",
+        "cluster_version" : var.eks_cluster_version,
+        "ec2_ssh_key" : var.ec2_key_pair_name,
+        "cluster_endpoint_private_access" : true,
+        "cluster_endpoint_public_access" : true,
+        "eks_min_size" : 1,
+        "eks_max_size" : 3,
+        "eks_desired_size" : 1           # used for pool size and consul replicas size
+        "eks_instance_type" : "m5.large" # m5.large(2cpu,8mem), m5.2xlarge(8cpu,32mem)
+        #"service_ipv4_cidr" : "10.26.16.0/24"
+      }
       "ec2" = {
         "bastion" = {
           "ec2_ssh_key" : var.ec2_key_pair_name
@@ -63,6 +75,10 @@ locals {
         "ec2_ssh_key" : var.ec2_key_pair_name,
         "cluster_endpoint_private_access" : true,
         "cluster_endpoint_public_access" : true,
+        "eks_min_size" : 1,
+        "eks_max_size" : 3,
+        "eks_desired_size" : 1           # used for pool size and consul replicas size
+        "eks_instance_type" : "m5.large" # m5.large(2cpu,8mem), m5.2xlarge(8cpu,32mem)
         #"service_ipv4_cidr" : "10.26.16.0/24"
       }
       "ec2" = {
@@ -184,7 +200,7 @@ module "hcp_consul_use1" {
   providers = {
     aws = aws.use1
   }
-  source         = "../modules/hcp_consul"
+  source         = "../../modules/hcp_consul"
   for_each       = { for k, v in local.use1 : k => v if contains(keys(v), "hcp-consul") }
   hvn_id         = try(local.use1[each.key].hcp-consul.hvn_id, var.hvn_id)
   cloud_provider = try(local.use1[each.key].hcp-consul.cloud_provider, var.cloud_provider)
@@ -276,7 +292,7 @@ module "tgw-use1" {
 
 # Attach 1+ Transit Gateways to each VPC and create routes for the private subnets
 module "tgw_vpc_attach_use1" {
-  source = "../modules/aws_tgw_vpc_attach"
+  source = "../../modules/aws_tgw_vpc_attach"
   providers = {
     aws = aws.use1
   }
@@ -295,7 +311,7 @@ module "aws_hcp_tgw_attach_use1" {
   providers = {
     aws = aws.use1
   }
-  source                        = "../modules/aws_hcp_tgw_attach"
+  source                        = "../../modules/aws_hcp_tgw_attach"
   for_each                      = local.hvn_tgw_attachments_map_use1
   ram_resource_share_name       = "${local.use1[each.value.tgw_env].tgw.name}-ram"
   hvn_provider_account_id       = module.hcp_consul_use1[each.value.hvn_env].provider_account_id
@@ -311,7 +327,7 @@ module "aws_hcp_tgw_attach_use1" {
 
 # Create additional private routes between VPCs so they can see each other.
 module "route_add_use1" {
-  source = "../modules/aws_route_add"
+  source = "../../modules/aws_route_add"
   providers = {
     aws = aws.use1
   }
@@ -323,7 +339,7 @@ module "route_add_use1" {
 }
 #Add private routes to public route table to support SSH from bastion host.
 module "route_public_add_use1" {
-  source = "../modules/aws_route_add"
+  source = "../../modules/aws_route_add"
   providers = {
     aws = aws.use1
   }
@@ -335,7 +351,7 @@ module "route_public_add_use1" {
 }
 # Create static HVN route with local.use1.use1-shared.hcp-consul.cidr_block
 module "route_add_hcp_use1" {
-  source = "../modules/aws_route_add"
+  source = "../../modules/aws_route_add"
   providers = {
     aws = aws.use1
   }
@@ -352,7 +368,7 @@ module "eks-use1" {
   providers = {
     aws = aws.use1
   }
-  source                          = "../modules/aws_eks_cluster"
+  source                          = "../../modules/aws_eks_cluster"
   for_each                        = { for k, v in local.use1 : k => v if contains(keys(v), "eks") }
   cluster_name                    = try(local.use1[each.key].eks.cluster_name, local.name)
   cluster_version                 = try(local.use1[each.key].eks.eks_cluster_version, var.eks_cluster_version)
@@ -373,7 +389,7 @@ module "hcp_consul_policy-use1" {
     aws    = aws.use1
     consul = consul.use1
   }
-  source            = "../modules/hcp_consul_policy"
+  source            = "../../modules/hcp_consul_policy"
   for_each          = toset(local.ec2_service_list_use1)
   consul_datacenter = module.hcp_consul_use1[local.hvn_list_use1[0]].datacenter
   consul_service    = each.key
@@ -384,7 +400,7 @@ module "hcp_consul_ec2_iam_auth_method-use1" {
     aws    = aws.use1
     consul = consul.use1
   }
-  source                = "../modules/hcp_consul_ec2_iam_auth_method"
+  source                = "../../modules/hcp_consul_ec2_iam_auth_method"
   ServerIDHeaderValue   = join("", regex("http?s://(.*)", module.hcp_consul_use1[local.hvn_list_use1[0]].consul_private_endpoint_url))
   BoundIAMPrincipalARNs = [module.hcp_consul_ec2_iam_profile-use1.instance_profile_arn]
 }
@@ -393,13 +409,14 @@ module "hcp_consul_ec2_iam_profile-use1" {
   providers = {
     aws = aws.use1
   }
-  source = "../modules/hcp_consul_ec2_iam_profile"
+  source    = "../../modules/hcp_consul_ec2_iam_profile"
+  role_name = "consul-role-use1"
 }
 module "hcp_consul_ec2_client-use1" {
   providers = {
     aws = aws.use1
   }
-  source   = "../modules/hcp_consul_ec2_client"
+  source   = "../../modules/hcp_consul_ec2_client"
   for_each = local.ec2_map_use1
 
   hostname                        = local.ec2_map_use1[each.key].hostname
@@ -423,7 +440,7 @@ module "sg-consul-agents-use1" {
   providers = {
     aws = aws.use1
   }
-  source = "../modules/aws_sg_consul_agents"
+  source = "../../modules/aws_sg_consul_agents"
   #for_each              = local.use1
   for_each = { for k, v in local.use1 : k => v if contains(keys(v), "ec2") }
   #region                = local.use1[each.key].region
@@ -439,7 +456,7 @@ module "sg-consul-dataplane-use1" {
   providers = {
     aws = aws.use1
   }
-  source                = "../modules/aws_sg_consul_dataplane"
+  source                = "../../modules/aws_sg_consul_dataplane"
   for_each              = { for k, v in local.use1 : k => v if contains(keys(v), "eks") }
   security_group_create = true
   name_prefix           = "${each.key}-consul-dataplane-sg" #eks-cluster-sg-${prefix}-${each.key}
@@ -451,10 +468,11 @@ module "sg-consul-dataplane-use1" {
 data "template_file" "eks_clients_use1" {
   for_each = { for k, v in local.use1 : k => v if contains(keys(v), "eks") }
 
-  template = file("${path.module}/templates/consul_helm_client.tmpl")
+  template = file("${path.module}/../templates/consul_helm_client.tmpl")
   vars = {
     region_shortname            = "use1"
     cluster_name                = try(local.use1[each.key].eks.cluster_name, local.name)
+    server_replicas             = try(local.use1[each.key].eks.eks_desired_size, var.eks_desired_size)
     datacenter                  = module.hcp_consul_use1[local.hvn_list_use1[0]].datacenter
     release_name                = "consul-${each.key}"
     consul_external_servers     = jsondecode(base64decode(module.hcp_consul_use1[local.hvn_list_use1[0]].consul_config_file)).retry_join[0]
@@ -467,6 +485,7 @@ data "template_file" "eks_clients_use1" {
     consul_config_file          = module.hcp_consul_use1[local.hvn_list_use1[0]].consul_config_file
     consul_root_token_secret_id = module.hcp_consul_use1[local.hvn_list_use1[0]].consul_root_token_secret_id
     partition                   = var.consul_partition
+    node_selector               = "" #K8s node label to target deployment too.
   }
 }
 
