@@ -13,7 +13,7 @@ data "aws_caller_identity" "usw2" {
 locals {
   # US-WEST-2 DC Configuration
   usw2 = {
-    "usw2-consul1" = {
+    "consul1" = {
       "vpc" = {
         "name" : "${var.prefix}-usw2-consul1"
         "cidr" : "10.17.0.0/20",
@@ -37,9 +37,12 @@ locals {
         "eks_desired_size" : 1           # used for pool size and consul replicas size
         "eks_instance_type" : "m5.large" # m5.large(2cpu,8mem), m5.2xlarge(8cpu,32mem)
         #"service_ipv4_cidr" : "10.17.16.0/24" #Can't overlap with VPC CIDR
+        "consul_helm_chart_template" : "values-server.yaml"
+        "consul_datacenter" : "dc1"
+        "consul_type" : "server"
       }
     }
-    "usw2-consul2" = {
+    "consul2" = {
       "vpc" = {
         "name" : "${var.prefix}-usw2-consul2"
         "cidr" : "10.18.0.0/20",
@@ -58,9 +61,12 @@ locals {
         "eks_desired_size" : 1           # used for pool size and consul replicas size
         "eks_instance_type" : "m5.large" # m5.large(2cpu,8mem), m5.2xlarge(8cpu,32mem)
         #"service_ipv4_cidr" : "10.17.16.0/24" #Can't overlap with VPC CIDR
+        "consul_helm_chart_template" : "values-server.yaml"
+        "consul_datacenter" : "dc2"
+        "consul_type" : "server"
       }
     }
-    "usw2-app1" = {
+    "app1" = {
       "vpc" = {
         "name" : "${var.prefix}-usw2-app1"
         "cidr" : "10.50.0.0/20",
@@ -79,9 +85,13 @@ locals {
         "eks_desired_size" : 1           # used for pool size and consul replicas size
         "eks_instance_type" : "m5.large" # m5.large(2cpu,8mem), m5.2xlarge(8cpu,32mem)
         #"service_ipv4_cidr" : "10.17.16.0/24" #Can't overlap with VPC CIDR
+        "consul_helm_chart_template" : "values-dataplane.yaml"
+        "consul_datacenter" : "dc1"
+        "consul_type" : "client"
+        "consul_partition" : "app1"
       }
     }
-    "usw2-app2" = {
+    "app2" = {
       "vpc" = {
         "name" : "${var.prefix}-usw2-app2"
         "cidr" : "10.60.0.0/20",
@@ -100,6 +110,10 @@ locals {
         "eks_desired_size" : 1           # used for pool size and consul replicas size
         "eks_instance_type" : "m5.large" # m5.large(2cpu,8mem), m5.2xlarge(8cpu,32mem)
         #"service_ipv4_cidr" : "10.17.16.0/24" #Can't overlap with VPC CIDR
+        "consul_helm_chart_template" : "values-dataplane.yaml"
+        "consul_datacenter" : "dc2"
+        "consul_type" : "client"
+        "consul_partition" : "app2"
       }
     }
   }
@@ -342,6 +356,7 @@ module "eks-usw2" {
   vpc_id                          = module.vpc-usw2[each.key].vpc_id
   subnet_ids                      = module.vpc-usw2[each.key].private_subnets
   all_routable_cidrs              = local.all_routable_cidr_blocks_usw2
+  #hcp_cidr                        = local.all_routable_cidr_blocks_usw2
 }
 
 data "template_file" "eks_clients_usw2" {
@@ -352,13 +367,14 @@ data "template_file" "eks_clients_usw2" {
     region_shortname            = "usw2"
     cluster_name                = try(local.usw2[each.key].eks.cluster_name, local.name)
     server_replicas             = try(local.usw2[each.key].eks.eks_desired_size, var.eks_desired_size)
-    datacenter                  = "dc1"
+    datacenter                  = try(local.usw2[each.key].eks.consul_datacenter, "dc1")
+    consul_type                 = try(local.usw2[each.key].eks.consul_type, "client")
     release_name                = "consul-${each.key}"
     consul_external_servers     = "NO_HCP_SERVERS"
     eks_cluster_endpoint        = module.eks-usw2[each.key].cluster_endpoint
     consul_version              = var.consul_version
     consul_helm_chart_version   = var.consul_helm_chart_version
-    consul_helm_chart_template  = var.consul_helm_chart_template
+    consul_helm_chart_template  = try(local.usw2[each.key].eks.consul_helm_chart_template, var.consul_helm_chart_template)
     consul_chart_name           = "consul"
     consul_ca_file              = ""
     consul_config_file          = ""

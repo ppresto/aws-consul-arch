@@ -22,7 +22,7 @@
     - [Consul - Admin Partitions.](#consul---admin-partitions)
   - [EKS / Kubernetes](#eks--kubernetes)
     - [EKS - Login / Set Context](#eks---login--set-context)
-    - [EKS - Helm Install manually to debug](#eks---helm-install-manually-to-debug)
+    - [EKS - Helm](#eks---helm)
     - [EKS - Uninstall Helm chart](#eks---uninstall-helm-chart)
     - [EKS - Helm install AWS LB Controller](#eks---helm-install-aws-lb-controller)
     - [EKS - Test pod connectivity to Consul](#eks---test-pod-connectivity-to-consul)
@@ -39,6 +39,7 @@
   - [Load Testing | Fortio](#load-testing--fortio)
   - [Troubleshooting](#troubleshooting-1)
     - [HCP Logs](#hcp-logs)
+    - [Peering](#peering)
 
 <!-- /TOC -->
 # Troubleshooting
@@ -298,14 +299,16 @@ Label node
 ```
 kubectl label nodes ip-10-16-1-177.us-west-2.compute.internal nodetype=consul
 ```
-
-### EKS - Helm Install manually to debug
+### EKS - Helm
 Manually install consul using Helm.  The test.yaml below can be created from existing Terraform Output.  Make sure you are using a [compatable consul-k8s helm chart version](https://www.consul.io/docs/k8s/compatibility).  For Ent Consul make sure you create the k8s license secret in the correct namespace that the helm chart is expecting (ex: consul).
 
 ```
 kubectl create namespace consul
 secret=$(cat ../../files/consul.lic)
 kubectl -n consul create secret generic consul-ent-license --from-literal="key=${secret}"
+
+# Copy consul-ca-cert from consul server to dataplane.
+kubectl -n consul get secret consul-ca-cert --context consul1 -o yaml | kubectl apply --context app2 -f -
 ```
 
 Install Consul Ent
@@ -319,7 +322,10 @@ helm install team2 hashicorp/consul --namespace consul --version 1.0.2 --set glo
 helm install consul-usw2-app1 hashicorp/consul --namespace consul --version 1.0.2 --values ./yaml/auto-consul-usw2-app2-values.yaml
 
 # consul 1.15.2-ent
-helm install consul-usw2-app1 hashicorp/consul --namespace consul --version 1.1.1 --values ./yaml/ex-consul-usw2-app1-values.yaml
+helm install consul-app1 hashicorp/consul --namespace consul --values ./yaml/auto-consul-app1-values-dataplane-hosted-ns.yaml
+
+helm install consul-app2 hashicorp/consul --namespace consul --values ./yaml/auto-consul-app2-values-dataplane-hosted-ns.yaml
+
 ```
 
 ### EKS - Uninstall Helm chart
@@ -562,3 +568,15 @@ nslookup $CONSUL_HTTP_ADDR #domain only remove https://
 # Open 3 tabs, create token, and issue monitor command on each IP to tail logs
 CONSUL_HTTP_SSL_VERIFY=false consul monitor -log-level debug -token xxxx -http-addr https://35.166.37.150
 ```
+
+### Peering
+
+Confirm the usw2 EKS cluster can access the use1 EKS Cluster service `api`.
+```
+source ../../scripts/setHCP-ConsulEnv-usw2.sh  .
+
+kubectl exec -it deploy/web -- curl --header "X-Consul-Token: ${CONSUL_HTTP_TOKEN}" ${CONSUL_HTTP_ADDR}/v1/health/connect/api?peer=presto-cluster-use1-default | jq -r
+
+kubectl exec -it deploy/web -- curl --header "X-Consul-Token: ${CONSUL_HTTP_TOKEN}" ${CONSUL_HTTP_ADDR}/v1/health/connect/api?peer=presto-cluster-use1-default | jq '.[].Service.ID,.[].Service.PeerName
+```
+output contains the `api` sidecar service ID and the name of the related cluster peering.

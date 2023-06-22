@@ -6,6 +6,7 @@ module "consul_${cluster_name}" {
   cluster_name         = "${cluster_name}"
   datacenter           = "${datacenter}"
   consul_partition     = "${partition}"
+  consul_type          = "${consul_type}"
   server_replicas      = "${server_replicas}"
   consul_version       = "${consul_version}"
   consul_license       = file("../../../files/consul.lic")

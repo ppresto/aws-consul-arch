@@ -3,9 +3,16 @@ CUR_SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
 # PreReq - 
 #  Setup Kubeconfig to auth into AKS Consul cluster
 
+# Setup local AWS Env variables
+if [[ -z $1 ]]; then  #Pass path for tfstate dir if not in quickstart.
+TERRAFORM_DIR=${CUR_SCRIPT_DIR}/../../../quickstart/2hcp-2eks-2ec2/
+else
+TERRAFORM_DIR=${1}
+fi
+
 # Setup Env
 function meshdefaults () {
-  source ${CUR_SCRIPT_DIR}/../../../scripts/setHCP-ConsulEnv-usw2.sh ${CUR_SCRIPT_DIR}/../../../quickstart/2hcp-2eks-2ec2/
+  source ${CUR_SCRIPT_DIR}/../../../scripts/setHCP-ConsulEnv-usw2.sh ${TERRAFORM_DIR}
 # Configure Mesh defaults
   cat >/tmp/mesh-usw2.json <<-EOF
 {
@@ -29,7 +36,7 @@ EOF
   # Read Configuration
   curl --header "X-Consul-Token: ${CONSUL_HTTP_TOKEN}" ${CONSUL_HTTP_ADDR}/v1/config/mesh/mesh | jq -r
  
- source ${CUR_SCRIPT_DIR}/../../../scripts/setHCP-ConsulEnv-use1.sh ${CUR_SCRIPT_DIR}/../../../quickstart/2hcp-2eks-2ec2/
+ source ${CUR_SCRIPT_DIR}/../../../scripts/setHCP-ConsulEnv-use1.sh ${TERRAFORM_DIR}
 # Configure Mesh defaults
   cat >/tmp/mesh-use1.json <<-EOF
 {
@@ -59,7 +66,7 @@ function setup () {
   #
   ### East DC: presto-cluster-use1
   #
-  source ${CUR_SCRIPT_DIR}/../../../scripts/setHCP-ConsulEnv-use1.sh ${CUR_SCRIPT_DIR}/../../../quickstart/2hcp-2eks-2ec2/
+  source ${CUR_SCRIPT_DIR}/../../../scripts/setHCP-ConsulEnv-use1.sh ${TERRAFORM_DIR}
   kubectl config use-context use1-app1
 
   # # Verify Peering through MG
@@ -98,6 +105,9 @@ function setup () {
 
   echo "curl -sk --header \"X-Consul-Token: ${CONSUL_HTTP_TOKEN}\" --request GET ${CONSUL_HTTP_ADDR}/v1/peering/presto-cluster-usw2-default?partition=default | jq -r"
 
+}
+
+function exportServices() {
   # Export Services for each peer to advertise available service catalog.
   echo "Exporting Acceptor services..."
   kubectl config use-context use1-app1
@@ -106,7 +116,6 @@ function setup () {
   #kubectl config use-context consul1
   #kubectl apply -f ${CUR_SCRIPT_DIR}/exportedServices_consul1-westus2.yaml
 }
-
 # Clean up
 function remove () {
     kubectl config use-context usw2-app1
@@ -118,16 +127,17 @@ function remove () {
     kubectl delete -f ${CUR_SCRIPT_DIR}/exportedServices_presto-cluster-use1-default.yaml
     kubectl delete -f ${CUR_SCRIPT_DIR}/peering-acceptor-east.yaml
 
-    source ${CUR_SCRIPT_DIR}/../../../scripts/setHCP-ConsulEnv-use1.sh ${CUR_SCRIPT_DIR}/../../../quickstart/2hcp-2eks-2ec2/
+    source ${CUR_SCRIPT_DIR}/../../../scripts/setHCP-ConsulEnv-use1.sh ${TERRAFORM_DIR}
     curl --request DELETE --header "X-Consul-Token: ${CONSUL_HTTP_TOKEN}" ${CONSUL_HTTP_ADDR}/v1/config/mesh/mesh
 
-    source ${CUR_SCRIPT_DIR}/../../../scripts/setHCP-ConsulEnv-use1.sh ${CUR_SCRIPT_DIR}/../../../quickstart/2hcp-2eks-2ec2/
+    source ${CUR_SCRIPT_DIR}/../../../scripts/setHCP-ConsulEnv-use1.sh ${TERRAFORM_DIR}
     curl --request DELETE --header "X-Consul-Token: ${CONSUL_HTTP_TOKEN}" ${CONSUL_HTTP_ADDR}/v1/config/mesh/mesh
 }
 
 if [[ -z $1 ]]; then
-  #meshdefaults
-  setup
+  #meshdefaults # not required for HVN peering.  Using CRDs from fake-service/
+  #setup        #Peering CRDs not working for HCP.  need to change to API only.
+  exportServices
 else
   remove
 fi

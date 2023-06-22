@@ -2,24 +2,19 @@
 SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
 
 deploy() {
+    kubectl config use-context use1-app1
+    kubectl apply -f ${SCRIPT_DIR}/eastus/init-consul-config
+    kubectl apply -f ${SCRIPT_DIR}/eastus/
+    
     # deploy westus2 services
     kubectl config use-context usw2-app1
     kubectl apply -f ${SCRIPT_DIR}/westus2/init-consul-config
     kubectl apply -f ${SCRIPT_DIR}/westus2/
     
-    kubectl config use-context use1-app1
-    kubectl apply -f ${SCRIPT_DIR}/eastus/init-consul-config
-    kubectl apply -f ${SCRIPT_DIR}/eastus/
 
     # Output Ingress URL for us-west-2 fake-service
     echo
     echo "Region: us-west-2"
-    echo "http://$(kubectl -n consul get svc -l component=ingress-gateway -o json | jq -r '.items[].status.loadBalancer.ingress[].hostname'):8080/ui"
-    echo
-
-    # Output Ingress URL for us-east-1 fake-service
-    echo
-    echo "Region: us-east-1"
     echo "http://$(kubectl -n consul get svc -l component=ingress-gateway -o json | jq -r '.items[].status.loadBalancer.ingress[].hostname'):8080/ui"
     echo
 }

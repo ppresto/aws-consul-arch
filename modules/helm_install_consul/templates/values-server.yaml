@@ -52,7 +52,7 @@ server:
   resources:
     requests:
       memory: "1461Mi" # 75% of 2GB Mem
-      cpu: "1000m"
+      cpu: "500m"
     limits:
       memory: "1461Mi"
       cpu: "1000m"
@@ -73,6 +73,8 @@ connectInject:
     defaultEnabled: false
   consulNamespaces:
     mirroringK8S: true
+  cni:
+    enabled: true
   %{~ if node_selector != "" ~}
   nodeSelector: |
     ${node_selector}

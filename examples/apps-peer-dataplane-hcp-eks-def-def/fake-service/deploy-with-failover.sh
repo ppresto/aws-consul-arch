@@ -10,7 +10,9 @@ deploy() {
     # deploy westus2 services
     kubectl config use-context usw2-app1
     kubectl apply -f ${SCRIPT_DIR}/westus2/init-consul-config
-    kubectl apply -f ${SCRIPT_DIR}/westus2
+    kubectl apply -f ${SCRIPT_DIR}/westus2/api.yaml
+    kubectl apply -f ${SCRIPT_DIR}/westus2/web.yaml
+    kubectl apply -f ${SCRIPT_DIR}/westus2/traffic-mgmt.yaml
 
     # Output Ingress URL for fake-service
     echo
@@ -24,7 +26,7 @@ delete() {
     kubectl config use-context use1-app1
     kubectl delete -f ${SCRIPT_DIR}/eastus/release-api
     kubectl delete -f ${SCRIPT_DIR}/eastus/init-consul-config
-    kubectl config use-context aks1
+    kubectl config use-context usw2-app1
     kubectl delete -f ${SCRIPT_DIR}/westus2
     kubectl delete -f ${SCRIPT_DIR}/westus2/init-consul-config
 

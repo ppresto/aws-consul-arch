@@ -1,10 +1,10 @@
 global:
   enabled: false
   logLevel: "debug"
-  name: ${cluster_name}
-  datacenter: ${datacenter}
-  image: "hashicorp/consul-enterprise:${consul_version}"
-  imageK8S: docker.mirror.hashicorp.services/hashicorp/consul-k8s-control-plane:${consul_helm_chart_version}
+  name: presto-usw2-app2
+  datacenter: dc2
+  image: "hashicorp/consul-enterprise:1.15.2-ent"
+  imageK8S: docker.mirror.hashicorp.services/hashicorp/consul-k8s-control-plane:1.1.1
   #imageConsulDataplane: "hashicorp/consul-dataplane:1.0.0"
   enterpriseLicense:
     secretName: 'consul-ent-license'
@@ -14,7 +14,7 @@ global:
   enableConsulNamespaces: true
   adminPartitions:
     enabled: true
-    name: ${partition}
+    name: default
   peering:
     enabled: true
   acls:
@@ -35,16 +35,12 @@ global:
 
 externalServers:
   enabled: true
-  hosts: ["${consul_external_servers}"]
-  tlsServerName: "server.${datacenter}.consul"
+  hosts: ["k8s-consul-consulex-c210d39f1d-0049a4bc745c6540.elb.us-west-2.amazonaws.com"]
+  tlsServerName: "server.dc2.consul"
   httpsPort: 8501
   grpcPort: 8502
   useSystemRoots: false
-  k8sAuthMethodHost: ${eks_cluster}
-
-dns:
-  enabled: true
-  enableRedirection: true
+  k8sAuthMethodHost: https://8EB24BB5FE4D2E7597802D3532E5A191.gr7.us-west-2.eks.amazonaws.com
 
 server:
   enabled: false
@@ -59,9 +55,7 @@ connectInject:
   default: false
   consulNode:
     meta: 
-      node: "${cluster_name}-agentless-node"
-  cni:
-    enabled: true
+      node: "presto-usw2-app2-agentless-node"
 
 #controller:
 #  enabled: true

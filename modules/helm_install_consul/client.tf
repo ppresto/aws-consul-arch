@@ -55,7 +55,7 @@ resource "kubernetes_secret" "consul_license_client" {
 
 # Get Consul Cluster CA Certificate
 
-resource "kubernetes_secret" "consul-ca-cert" {
+resource "kubernetes_secret" "consul-ca-cert-hcp" {
   count = var.consul_helm_chart_template == "values-dataplane-hcp.yaml" ? 1 : 0
   metadata {
     name      = "consul-ca-cert"
@@ -63,11 +63,19 @@ resource "kubernetes_secret" "consul-ca-cert" {
   }
   data = { "tls.crt" = var.hcp_consul_ca_file }
 }
+resource "kubernetes_secret" "consul-ca-cert" {
+  count = var.consul_helm_chart_template != "values-dataplane-hcp.yaml" && var.consul_type == "client" ? 1 : 0
+  metadata {
+    name      = "consul-ca-cert"
+    namespace = var.kubernetes_namespace
+  }
+  binary_data = { "tls.crt" = var.hcp_consul_ca_file }
+}
 
 # Get Consul Cluster bootstrap token
 
 resource "kubernetes_secret" "consul-bootstrap-token" {
-  count = var.consul_helm_chart_template == "values-dataplane-hcp.yaml" ? 1 : 0
+  count = var.consul_helm_chart_template != "values-dataplane-hcp.yaml" && var.consul_type == "client" ? 1 : 0
   metadata {
     name      = "consul-bootstrap-acl-token"
     namespace = var.kubernetes_namespace

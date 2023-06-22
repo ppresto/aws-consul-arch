@@ -63,6 +63,11 @@ variable "consul_license" {
   description = "Consul license"
 }
 
+variable "consul_type" {
+  description = "Server or Client"
+  type        = string
+  default     = "client"
+}
 variable "consul_namespace" {
   type        = string
   default     = "consul"
@@ -73,6 +78,7 @@ variable "consul_partition" {
   default     = "default"
   description = "The partition to install the release into"
 }
+
 variable "create_namespace" {
   type        = bool
   default     = true

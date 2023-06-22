@@ -45,7 +45,8 @@ plan: init
 	@terraform plan
 
 destroy: init consul-clean
-	@terraform destroy -auto-approve 
+	@../../scripts/install_awslb_controller.sh . delete
+	@terraform destroy -auto-approve
 
 fmt:
 	@terraform fmt -recursive

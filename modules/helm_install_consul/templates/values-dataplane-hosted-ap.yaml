@@ -15,8 +15,6 @@ global:
   adminPartitions:
     enabled: true
     name: ${partition}
-  peering:
-    enabled: true
   acls:
     manageSystemACLs: true
     bootstrapToken:
@@ -62,9 +60,6 @@ connectInject:
       node: "${cluster_name}-agentless-node"
   cni:
     enabled: true
-
-#controller:
-#  enabled: true
 
 meshGateway:
   enabled: true
