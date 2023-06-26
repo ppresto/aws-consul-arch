@@ -379,7 +379,7 @@ data "template_file" "eks_clients_usw2" {
     consul_ca_file              = ""
     consul_config_file          = ""
     consul_root_token_secret_id = ""
-    partition                   = var.consul_partition
+    partition                   = try(local.usw2[each.key].eks.consul_partition, var.consul_partition)
     node_selector               = "" #K8s node label to target deployment too.
   }
 }

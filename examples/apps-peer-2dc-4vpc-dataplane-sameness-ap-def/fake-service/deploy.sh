@@ -6,11 +6,13 @@ CTX2=app2
 deploy() {
     # deploy eastus services
     kubectl config use-context ${CTX1}
+    kubectl apply -f ${SCRIPT_DIR}/${CTX1}/init-consul-config/samenessGroup.yaml
     kubectl apply -f ${SCRIPT_DIR}/${CTX1}/init-consul-config
     kubectl apply -f ${SCRIPT_DIR}/${CTX1}/
 
     # deploy westus2 services
     kubectl config use-context ${CTX2}
+    kubectl apply -f ${SCRIPT_DIR}/${CTX2}/init-consul-config/samenessGroup.yaml
     kubectl apply -f ${SCRIPT_DIR}/${CTX2}/init-consul-config
     kubectl apply -f ${SCRIPT_DIR}/${CTX2}
 

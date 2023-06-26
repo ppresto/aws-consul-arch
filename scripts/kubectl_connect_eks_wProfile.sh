@@ -27,6 +27,7 @@ do
                     # get identity
                     aws sts get-caller-identity
                     # add EKS cluster to $HOME/.kube/config
+                    echo "aws eks --region $region update-kubeconfig --name $cluster --alias "${PROJECTS[$i]}" --profile ${PROFILE}"
                     aws eks --region $region update-kubeconfig --name $cluster --alias "${PROJECTS[$i]}" --profile ${PROFILE}
                 fi
             done

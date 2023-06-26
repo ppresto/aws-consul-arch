@@ -35,7 +35,8 @@ consul-server: eks-connect awslb
 
 consul-dataplane:
 	@../../scripts/update-SelfHosted-dataplane-yaml.sh .
-	@terraform -chdir="consul_helm_values" apply -target=module.consul_presto-usw2-app1 -target=module.consul_presto-usw2-app2 -auto-approve
+	@terraform -chdir="consul_helm_values" apply -target=module.consul_presto-usw2-app1 -auto-approve
+	@terraform -chdir="consul_helm_values" apply -target=module.consul_presto-usw2-app2 -auto-approve
 
 consul-info:
 	@echo "Login to Consul1 UI - https://"

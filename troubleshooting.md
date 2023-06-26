@@ -309,6 +309,9 @@ kubectl -n consul create secret generic consul-ent-license --from-literal="key=$
 
 # Copy consul-ca-cert from consul server to dataplane.
 kubectl -n consul get secret consul-ca-cert --context consul1 -o yaml | kubectl apply --context app2 -f -
+
+# Copy consul-bootstrap-acl-token from consul server to dataplane.
+kubectl -n consul get secret consul-bootstrap-acl-token --context consul1 -o yaml | kubectl apply --context app2 -f -
 ```
 
 Install Consul Ent

@@ -45,7 +45,7 @@ consul-info:
 	
 consul-clean: eks-connect
 	@-terraform -chdir="consul_helm_values" destroy -auto-approve
-	@-ubectl -n consul --context=consul1 delete secrets consul-ca-cert consul-bootstrap-acl-token
+	@-kubectl -n consul --context=consul1 delete secrets consul-ca-cert consul-bootstrap-acl-token
 	@-kubectl -n consul --context=consul2 delete secrets consul-ca-cert consul-bootstrap-acl-token
 	@-rm consul_helm_values/auto-*
 
